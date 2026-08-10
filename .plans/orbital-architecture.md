@@ -84,7 +84,7 @@ choice — it accumulated.
 
 The target is TypeScript end to end:
 
-- `worker/` (Go) is ported into `src/server/` and deleted
+- `worker/` (Go) is ported into `apps/server` and `packages/domain`, and deleted
 - `app/src-tauri` (Rust) is deleted outright — eighteen pass-through commands
   that no scenario needs
 - the desktop shell becomes Electron, later, wrapped around the same web client
@@ -95,44 +95,48 @@ window, a server process, a tray icon, updates.
 
 ### Repo layout
 
-The file order follows create-t3-app, in **one package** — one `package.json`,
-one `tsconfig`, Vite building the client and a Node entry building the server:
+The shape follows [t3code](https://github.com/pingdotgg/t3code) — an agent
+harness control surface across mobile, web and Electron, which is the same kind
+of product as Orbital rather than a web-app scaffold. A pnpm workspace:
 
 ```
-public/
-src/
-  env.ts                  validated environment: model, paths, port
-  app/                    React client — a plain tree, not a router
+apps/
+  web/                  React client (Vite)
     canvas/  chat/  review/  intake/  shell/  ui/
-  server/
+  server/               the long-lived Node process
     api/
-      routers/            node.ts · edge.ts · run.ts · graph.ts
-      root.ts
-      trpc.ts
-    db/                   index.ts · schema.ts
-    graph/  eventlog/     pure
+      routers/          node.ts · edge.ts · run.ts · graph.ts
+      root.ts · trpc.ts
     context/  scheduler/  artifacts/
-    executor/
-      command/  claude/
-    index.ts              the long-lived process entry
-  trpc/                   client-side bridge
-  styles/
+    executor/           command/ · claude/
+    db/                 index.ts · schema.ts
+    env.ts
+    index.ts            the process entry
+  desktop/              Electron — later
+packages/
+  domain/               graph · eventlog — pure
+  contracts/            AppRouter type + schemas, shared by every client
+tooling/
+  oxlint-plugin-orbital/
+docs/  scripts/  .plans/
 ```
 
 There is no `core/`. A directory named for what it excludes has no principle for
 what belongs in it, which is how three runtimes accumulated in the first place.
 
-Three places Orbital diverges from the scaffold, none of them a problem:
+The split is load-bearing in three places. `packages/domain` makes §4's purity
+rule **structural** — it cannot import the executor, because the executor is not
+one of its dependencies, so the code does not compile rather than failing a lint
+pass. `packages/contracts` keeps `apps/web` from ever importing `apps/server`,
+which is what makes a workspace rot. And `apps/desktop` is a place Electron
+goes, rather than a change to how everything is built.
 
-- `src/app/` is not a router. In T3 it is the Next App Router and the folder
-  layout *is* the URL structure; here it is a Vite SPA that keeps its feature
-  folders, and the tRPC handler lives in the server entry rather than under
-  `app/api/`.
-- `server/index.ts` is a long-lived process, not a request handler. It holds
-  worktrees, Claude sessions and the scheduler across requests, and under
-  Electron it becomes the main process with `app/` as the renderer.
-- No `trpc/server.ts` — that file serves React Server Components, which Orbital
-  does not have.
+`context` stays in `apps/server`: only `graph` and `eventlog` are declared pure,
+and context reads artifact content and counts budget.
+
+`apps/server` is a long-lived process, not a request handler — it holds
+worktrees, Claude sessions and the scheduler across requests, and under Electron
+it becomes the main process with `apps/web` as the renderer.
 
 ### What this costs, deliberately
 
@@ -170,7 +174,7 @@ That is a choice, taken knowingly.
                 │  tRPC — queries and mutations, subscriptions for the
                 │  event stream. One contract, inferred on the client.
 ┌───────────────▼──────────────────────────────────────┐
-│  src/server (TypeScript, Node)                       │
+│  apps/server + packages/domain (TypeScript, Node)    │
 │                                                      │
 │  api ──► graph ──► scheduler ──► executor            │
 │           │            │             │               │

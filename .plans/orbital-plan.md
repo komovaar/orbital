@@ -48,13 +48,14 @@ behaves — so infrastructure and the reference both stop being distractions.
 
 - `next` branched from `main`
 - the architecture document, this plan, and `decisions.md` committed first
-- the T3 layout established: **`app/src/*` moves to `src/app/*` now**, while the
-  client is still untouched, so the phase 4 rewrite lands in its final location
-  rather than being followed by a second reshuffle
-- `src/server/` skeleton in the same package: TypeScript strict, vitest, no
-  `any`, a lint rule forbidding `fs` / `net` / `child_process` under
-  `server/graph` and `server/eventlog` so purity is enforced rather than hoped
-  for
+- the workspace established: `pnpm-workspace.yaml`, `tsconfig.base.json`, and
+  **`app/src/*` moves to `apps/web/*` now**, while the client is still
+  untouched, so the phase 4 rewrite lands in its final location rather than
+  being followed by a second reshuffle
+- `apps/server` and `packages/domain` skeletons: TypeScript strict, vitest, no
+  `any`. `packages/domain` depends on nothing that can do I/O, so purity is
+  structural; `tooling/oxlint-plugin-orbital` backs it up with a rule forbidding
+  `fs` / `net` / `child_process`
 - `scripts/check.sh` gains a second gate: the existing Go tests **and** the new
   TypeScript ones
 - **the scenario recordings are captured** — fixture repositories driven through
@@ -64,7 +65,7 @@ behaves — so infrastructure and the reference both stop being distractions.
 `worker/` is not touched. It remains the reference until the very end.
 
 **Done when:** CI is green on both gates, the relocated client still builds and
-runs, an empty `src/server/` builds, and the recordings replay identically
+runs, empty `apps/server` and `packages/domain` build, and the recordings replay identically
 against the Go binary twice in a row.
 
 **Why the recordings come first:** they can only be made while the old worker
@@ -97,8 +98,8 @@ Do not. This layer has to stay pure permanently — everything else rests on it.
 
 **Note on where this already stands:** the scaffolded `core/src/graph` and
 `core/src/eventlog` total roughly a thousand lines with **no tests**, and they
-predate every decision in `decisions.md`. They move to `src/server/` as a sketch
-to be revised, not a foundation to extend. Let the tests lead.
+predate every decision in `decisions.md`. They move to `packages/domain` as a
+sketch to be revised, not a foundation to extend. Let the tests lead.
 
 ---
 
@@ -149,8 +150,8 @@ it — which is the entire reason it now comes before the client.
 
 **Goal:** the first version that can be put in front of a person.
 
-- `src/app/workspace` stops using `tauri.invoke` and calls tRPC procedures
-- `src/app/canvas` moves to the new model: node kinds, edge apertures, computed
+- `apps/web/workspace` stops using `tauri.invoke` and calls tRPC procedures
+- `apps/web/canvas` moves to the new model: node kinds, edge apertures, computed
   state with its reasons, groups as collapsible boxes
 - `app/src-tauri` is deleted
 - the server serves the client on `localhost`

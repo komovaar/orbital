@@ -187,63 +187,72 @@ Three changes to the phase order:
   produced, approval undecided) and `rejected`. An input counts as available
   only when it has an artifact *and* is approved where approval is required.
 
-## D13 — Repo layout: T3 file order, one package
+## D13 — Repo layout: the t3code shape
 
-There is no `core/`. The layout follows create-t3-app, which resolves the naming
-question by replacing it — T3 has `src/server/`.
+There is no `core/` — a directory named for what it excludes has no principle
+for what belongs in it, which is how three runtimes accumulated in the first
+place.
 
-Verified against the scaffold (`cli/template/base`) rather than from memory:
-`src/`, not `apps/`. `apps/` + `packages/` is **create-t3-turbo**, the Turborepo
-variant, and was considered and rejected — it exists because Next and Expo ship
-separately, and Orbital has one client. Electron's main process is another entry
-in the same package, not a second app.
+The reference is **[pingdotgg/t3code](https://github.com/pingdotgg/t3code)**, an
+agent harness control surface for Claude Code, Codex and Cursor across mobile,
+web and Electron — the same category of product as Orbital, not a web-app
+scaffold. Its shape:
 
 ```
-public/
-src/
-  env.ts                  validated environment: model, paths, port
-  app/                    React client — a plain tree, not a router
+apps/       desktop · marketing · mobile · server · web
+packages/   client-runtime · contracts · effect-acp ·
+            effect-codex-app-server · shared · ssh · tailscale
+native/  infra/  experiments/  oxlint-plugin-t3code/  .plans/
+pnpm-workspace.yaml · tsconfig.base.json · vite.config.ts
+```
+
+Orbital takes the same shape, at its own size — a **pnpm workspace**, not one
+package:
+
+```
+apps/
+  web/                  React client (Vite)
     canvas/  chat/  review/  intake/  shell/  ui/
-  server/
+  server/               the long-lived Node process
     api/
-      routers/            node.ts · edge.ts · run.ts · graph.ts
-      root.ts
-      trpc.ts
-    db/                   index.ts · schema.ts
-    graph/                pure
-    eventlog/             pure
-    context/
-    scheduler/
-    artifacts/
-    executor/
-      command/  claude/
-    index.ts              the long-lived process entry
-  trpc/                   client-side bridge: query-client.ts · react.tsx
-  styles/
+      routers/          node.ts · edge.ts · run.ts · graph.ts
+      root.ts · trpc.ts
+    context/  scheduler/  artifacts/
+    executor/           command/ · claude/
+    db/                 index.ts · schema.ts
+    env.ts
+    index.ts            the process entry
+  desktop/              Electron — later, an app rather than a rewrite
+packages/
+  domain/               graph · eventlog — pure, no fs/net/child_process
+  contracts/            AppRouter type + schemas, shared by every client
+tooling/
+  oxlint-plugin-orbital/  the purity rule as a lint plugin
+docs/  scripts/  .plans/
+pnpm-workspace.yaml · tsconfig.base.json
 ```
 
-Three deliberate divergences from the scaffold:
+Three things this buys that the single-package layout did not:
 
-- **`src/app/` is not a router.** In T3 it is the Next App Router and the folder
-  layout *is* the URL structure. Orbital is a Vite SPA, so `app/` keeps its
-  feature folders and there is no `app/api/trpc/[trpc]/route.ts` — the tRPC
-  handler lives in the server entry.
-- **No `trpc/server.ts`.** That file exists for React Server Components, which
-  Orbital does not have. Only the client bridge.
-- **`server/index.ts` is a long-lived process**, not a request handler. It holds
-  worktrees, Claude sessions and the scheduler across requests.
+- **`packages/domain` makes purity structural.** §4's rule stops depending on a
+  lint rule alone: `domain` cannot import the executor because the executor is
+  not one of its dependencies. It will not compile. The lint plugin becomes a
+  second layer rather than the only one.
+- **`packages/contracts` keeps `apps/web` from importing `apps/server`.** App-to-
+  app dependencies are what makes a workspace rot. It starts nearly empty — the
+  `AppRouter` type — and earns its keep the moment `apps/desktop` exists.
+- **`apps/desktop` is a place Electron goes**, rather than a change to how
+  everything is built. D5's deferral gets cheaper.
 
-**One package**, not a monorepo: one `package.json`, one `tsconfig`, Vite
-building the client and a Node entry building the server. That removes the
-packaging overhead that made a `domain/` + `server/` split expensive, so the
-purity rule stays a lint rule over `server/graph` and `server/eventlog`.
+Only `domain` and `eventlog` live in `packages/`. `context` does not: §4 declares
+only `graph` and `eventlog` pure, and context reads artifact content and counts
+budget, so it stays in `apps/server`.
 
-Two places Orbital does not fit T3, neither of them a problem: T3's `server/`
-runs inside Next's request lifecycle, while Orbital's is a long-lived local
-process holding worktrees and Claude sessions; and under Electron it becomes the
-main process with `app/` as the renderer.
+Accepted cost: pnpm workspaces, a tsconfig per package, and build orchestration
+across Vite and a Node server. Real, and smaller than it was when the alternative
+was a lint rule guarding a boundary nothing enforced.
 
-`app/src/*` → `src/app/*` moves **now**, while the client is untouched, so the
+`app/src/*` → `apps/web/*` moves **now**, while the client is untouched, so the
 phase 4 rewrite lands in its final location instead of being followed by a
 second reshuffle.
 
