@@ -192,26 +192,46 @@ Three changes to the phase order:
 There is no `core/`. The layout follows create-t3-app, which resolves the naming
 question by replacing it — T3 has `src/server/`.
 
+Verified against the scaffold (`cli/template/base`) rather than from memory:
+`src/`, not `apps/`. `apps/` + `packages/` is **create-t3-turbo**, the Turborepo
+variant, and was considered and rejected — it exists because Next and Expo ship
+separately, and Orbital has one client. Electron's main process is another entry
+in the same package, not a second app.
+
 ```
+public/
 src/
-  app/                    React client (Vite)
+  env.ts                  validated environment: model, paths, port
+  app/                    React client — a plain tree, not a router
     canvas/  chat/  review/  intake/  shell/  ui/
   server/
     api/
       routers/            node.ts · edge.ts · run.ts · graph.ts
       root.ts
       trpc.ts
+    db/                   index.ts · schema.ts
     graph/                pure
     eventlog/             pure
     context/
     scheduler/
+    artifacts/
     executor/
       command/  claude/
-    artifacts/
-    db.ts
-  trpc/                   client-side bridge
+    index.ts              the long-lived process entry
+  trpc/                   client-side bridge: query-client.ts · react.tsx
   styles/
 ```
+
+Three deliberate divergences from the scaffold:
+
+- **`src/app/` is not a router.** In T3 it is the Next App Router and the folder
+  layout *is* the URL structure. Orbital is a Vite SPA, so `app/` keeps its
+  feature folders and there is no `app/api/trpc/[trpc]/route.ts` — the tRPC
+  handler lives in the server entry.
+- **No `trpc/server.ts`.** That file exists for React Server Components, which
+  Orbital does not have. Only the client bridge.
+- **`server/index.ts` is a long-lived process**, not a request handler. It holds
+  worktrees, Claude sessions and the scheduler across requests.
 
 **One package**, not a monorepo: one `package.json`, one `tsconfig`, Vite
 building the client and a Node entry building the server. That removes the

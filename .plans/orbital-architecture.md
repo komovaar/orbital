@@ -99,19 +99,22 @@ The file order follows create-t3-app, in **one package** — one `package.json`,
 one `tsconfig`, Vite building the client and a Node entry building the server:
 
 ```
+public/
 src/
-  app/                    React client
+  env.ts                  validated environment: model, paths, port
+  app/                    React client — a plain tree, not a router
     canvas/  chat/  review/  intake/  shell/  ui/
   server/
     api/
       routers/            node.ts · edge.ts · run.ts · graph.ts
       root.ts
       trpc.ts
+    db/                   index.ts · schema.ts
     graph/  eventlog/     pure
     context/  scheduler/  artifacts/
     executor/
       command/  claude/
-    db.ts
+    index.ts              the long-lived process entry
   trpc/                   client-side bridge
   styles/
 ```
@@ -119,10 +122,17 @@ src/
 There is no `core/`. A directory named for what it excludes has no principle for
 what belongs in it, which is how three runtimes accumulated in the first place.
 
-Two places Orbital does not fit T3, neither of them a problem: T3's `server/`
-runs inside Next's request lifecycle, while Orbital's is a long-lived local
-process holding worktrees and Claude sessions; and under Electron it becomes the
-main process with `app/` as the renderer.
+Three places Orbital diverges from the scaffold, none of them a problem:
+
+- `src/app/` is not a router. In T3 it is the Next App Router and the folder
+  layout *is* the URL structure; here it is a Vite SPA that keeps its feature
+  folders, and the tRPC handler lives in the server entry rather than under
+  `app/api/`.
+- `server/index.ts` is a long-lived process, not a request handler. It holds
+  worktrees, Claude sessions and the scheduler across requests, and under
+  Electron it becomes the main process with `app/` as the renderer.
+- No `trpc/server.ts` — that file serves React Server Components, which Orbital
+  does not have.
 
 ### What this costs, deliberately
 
