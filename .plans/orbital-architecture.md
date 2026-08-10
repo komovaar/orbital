@@ -3,7 +3,9 @@
 Where the codebase is going: a canvas of derivations, executed locally, written
 in one language.
 
-Implementation order is in [orbital-plan.md](orbital-plan.md).
+Implementation order is in [orbital-plan.md](orbital-plan.md). The decisions
+this document was written from, with their reasoning, are in
+[decisions.md](decisions.md) — read that when a choice here looks arbitrary.
 
 ---
 
@@ -18,11 +20,15 @@ The new unit:
 > **A node is a derivation: `intent + inputs -> artifact`.**
 
 Not an agent, not a conversation. It is a claim that some artifact follows from
-an intent applied to named inputs. A conversation, where one happens, belongs to
-a **run** — a single attempt at the derivation — and is evidence, not identity.
-Re-running a node starts a new run with a fresh session and the same intent.
+an intent applied to named inputs.
 
-Everything below follows from that sentence.
+The point of that claim is not reproducibility — a language model will not
+reproduce anything. It is that the system knows **what each piece of work was
+built on**, and can therefore tell you when the ground moved. Orbital already
+hands an upstream mission's summary and diff to its downstream ones. Today,
+re-running the upstream leaves the downstream silently holding a diff that no
+longer exists. Nothing reports it, because nothing records what was consumed.
+That record is `inputDigest`, and it is the whole reason for the model.
 
 A second decision, load-bearing for what comes later:
 
@@ -34,6 +40,38 @@ leaves the machine it was made on and is addressed only by identifier.
 
 Orbital is single-player today. That separation is the only reason multiplayer
 can stay a later decision rather than a rewrite.
+
+### Runs, and how a node is steered
+
+A conversation belongs to a **run** and is evidence, not identity. But a run is
+not one attempt:
+
+> **A run is a session.** One Claude session id, many process invocations, and
+> potentially several artifacts over its life.
+
+This matches how the CLI actually works — the process exits after each turn and
+you return with `--resume <session-id>` — and it preserves the interaction the
+product is built around. Two operations, both explicit in the interface:
+
+| | What it does |
+|---|---|
+| **Continue** | Resumes the run's session with a new message. The agent keeps everything it learned. Produces a new artifact on the same run. **The default verb.** |
+| **Re-run** | A new run, fresh session, same intent. |
+
+Typing *"no, use CSS grid instead"* into a finished node is Continue. It is why
+a node beats a chat window, and it is not a special case bolted onto the
+derivation model — it is the model's ordinary path.
+
+`running` means a process is alive right now. That is a different question from
+whether the run is over, and `ArtifactProduced` does not end a run.
+
+**Corrections do not enter the digest.** A follow-up message changes neither the
+intent nor the inputs, so the node stays `fresh` — correct, because the digest
+answers "have my inputs moved", never "is this reproducible". The cost is that
+Re-run discards corrections. Accepted; no mechanism for promoting a correction
+into the intent until that loss is actually felt.
+
+Everything below follows from these two sections.
 
 ---
 
@@ -54,6 +92,29 @@ The target is TypeScript end to end:
 The client is a web application. It talks to `core` over HTTP and WS, so it runs
 identically in a browser tab and inside Electron. The shell stays thin: a
 window, a server process, a tray icon, updates.
+
+### What this costs, deliberately
+
+A cheaper arrangement was considered and rejected: keep the Go executor behind
+the CLI/JSON seam that already exists and works, and write only the domain in
+TypeScript. That would have left untouched exactly the code §8 promises not to
+improve. It was rejected because it does not deliver one language, and because
+the domain model is worth sharing with the client — the client can import it and
+fold the log locally for optimistic canvas updates, which a Go core cannot give.
+
+The costs are real and are work items, not objections:
+
+- 5,138 lines of hand-conversion in the layer where the instruction is *change
+  nothing*. §9 and the plan's phase 6 exist to contain this.
+- Process-group termination and crash cleanup are harder in Node than
+  `syscall.Kill(-pgid)`. Orphaned `claude` processes are the failure mode to
+  watch for.
+- Distribution loses the single static binary. Electron will need a bundled
+  runtime — `bun build --compile`, Node SEA, or shipping Node.
+
+Until Electron exists, Orbital is a browser tab on `localhost`. The installer
+and release pipeline stay frozen at v0.0.2 and testers stay on the old build.
+That is a choice, taken knowingly.
 
 ---
 
@@ -109,15 +170,16 @@ intentions.
 ### Node
 
 ```ts
-type NodeKind = "source" | "derivation" | "gate" | "group" | "watcher"
+type NodeKind = "source" | "derivation" | "watcher"
 
 type Node = {
   id: string
   graphId: string
   kind: NodeKind
+  title?: string         // short, for the card; extraction already produces one
   intent: string
-  owner: string          // whose credentials the run uses
 
+  requiresApproval: boolean
   artifactId: string     // a reference into artifacts, never the content
   inputDigest: string    // the digest of the inputs the artifact was made from
   runId?: string         // the most recent run
@@ -126,35 +188,99 @@ type Node = {
 
 | Kind | What it is |
 |---|---|
-| `source` | an input the graph does not compute — a repository, a document, a dataset |
+| `source` | an input the graph does not compute — a repository, a document, a dataset, or a human decision |
 | `derivation` | computed by an executor from its intent and inputs |
-| `gate` | a human decision; no execution, a person supplies the artifact |
-| `group` | a subtree presented as one node; fractal |
-| `watcher` | re-examines a source and emits when it moves; the only node that acts unasked |
+| `watcher` | re-examines a source and updates it when it moves |
+
+There is no `gate` kind. A gate is `requiresApproval` on a derivation: an
+unapproved or rejected artifact is not available to consumers, so the subtree
+below it is `blocked` through the ordinary rule and no second node has to exist
+to express a boolean. A standalone human decision — *"Postgres or SQLite?"* — is
+already a `source`, which is exactly what a source is: an input the graph does
+not compute.
+
+There is no `group` kind either. Groups are a view; see §5.5.
+
+`title` is optional but present in the domain because extraction already
+produces `{title, text}` and discarding it was a bug that had to be fixed once
+already.
+
+There is no `owner` field. Who owns a node is the `actor` on its `NodeCreated`
+event; storing it separately would be the same mistake as storing status.
+
+### Artifacts
+
+```ts
+type ArtifactKind = "patch" | "document" | "summary" | "decision"
+```
+
+The kind is not decoration. A patch, a plan document, a run summary and a human
+decision each inline differently into a consumer's context, and §7's per-edge
+budget breakdown cannot be computed without knowing what an edge carries.
+
+Repositories are not in the list. They are never inlined, only referenced.
 
 ### State is computed, never stored
 
+An input counts as **available** when it has an artifact and, where approval is
+required, has been approved.
+
 ```
-fresh   : artifactId !== "" && inputDigest === currentDigest(node)
-stale   : artifactId !== "" && inputDigest !== currentDigest(node)
-empty   : artifactId === ""
-running : a run is active
-blocked : an ancestor is not fresh, or a gate above is unresolved or rejected
-failed  : the last run failed
+running  : a process is alive for the current run
+failed   : the last run failed
+blocked  : an input is not available
+empty    : artifactId === ""
+rejected : the artifact was rejected
+pending  : an artifact exists, approval is required and undecided
+stale    : artifactId !== "" && inputDigest !== currentDigest(node)
+fresh    : artifactId !== "" && inputDigest === currentDigest(node)
 ```
 
 Those conditions overlap, so precedence is part of the definition:
 
 ```
-running > failed > blocked > empty > fresh | stale
+running > failed > blocked > empty > rejected > pending > stale > fresh
 ```
 
-`blocked` also carries a reason — `rejected-gate`, `unresolved-gate` or
-`stale-ancestor` — because "you cannot run this" and "a person said no" are
-different facts to put in front of a user.
+Two facts about this table matter more than the table.
+
+**`blocked` and `stale` split on different questions.** `blocked` means *my
+input does not exist* — the parent is empty, failed, or its artifact was
+rejected. `stale` means *my input existed, I consumed it, and it has since
+changed*. The first cannot run. The second can, and its existing artifact is
+still valid evidence of what was true when it was approved. An earlier draft
+defined `blocked` as "an ancestor is not fresh", which swallowed `stale`
+entirely and hid the only signal worth having.
+
+**`blocked` needs no ancestor walk.** Unavailability propagates on its own: if
+the grandparent is empty, the parent cannot run, so the parent has no artifact,
+so the child is blocked. A rejected artifact blocks its whole subtree by the
+same mechanism. You walk upward only to *name the reason* for a person, never to
+compute the state.
+
+`blocked` and `stale` both carry reasons, because "you cannot run this" and "a
+person said no" are different facts to put in front of a user, and so are
+"your foundation moved" and "policy changed":
+
+```
+blocked : unavailable-input | rejected-input | undecided-approval
+stale   : input-changed | rule-changed
+```
 
 Computing state instead of storing it removes an entire class of bug: flags that
 drift out of agreement with the graph they describe.
+
+### There is no staleness wave
+
+A stale parent still holds the artifact its child consumed. Its inputs moved;
+the child's did not. **Staleness does not propagate transitively.** It moves
+exactly one hop, and only when a parent actually re-runs and produces a
+different artifact.
+
+Re-run A and B goes stale. Re-run B and C goes stale. The canvas shows the
+**frontier** of what needs attention, not the whole cone below a change. This is
+the difference between a signal a person reads and a colour they learn to
+ignore.
 
 ### Edges and apertures
 
@@ -184,6 +310,30 @@ than a snapshot, so freshness cannot be a function of content the consumer never
 inlined — a node is never stale because a reference source moved. Adding or
 removing the edge still changes the digest, because the edge's own identity is
 part of it.
+
+`normative` contributing to **every descendant's** digest is equally deliberate,
+and is not in tension with the one-hop rule above. Inheritance inlines the rule
+into each descendant (§7, step 4), so each one is a *direct* consumer. Twenty
+nodes going stale from a rule edit is one hop from a rule with twenty consumers,
+not a wave — and it is true. Excluding it would make `inputDigest` lie about
+what was consumed, which is the one thing it must never do.
+
+That twenty-node change is legible because `stale` carries `rule-changed`, and
+the canvas renders a policy change differently from a foundation that moved.
+
+### 5.5 Groups are a view
+
+A group has no intent, no artifact and no digest, because *"what is a group's
+artifact?"* has no answer — its members', but which one? So a group is a
+collapsible box on the canvas and nothing in the domain: edges always connect
+real nodes, and collapsing renders its members' external edges on the box.
+
+Group membership and pinned node positions are **view state**. They belong in a
+store beside the event log, never in it — the log is the record of what the
+graph means, not of how it was arranged on a screen.
+
+The cost of this is that a group cannot be run as a unit. That is `Run all`,
+which was deleted at 61b3a18.
 
 ### The input digest
 
@@ -218,7 +368,8 @@ It means: **the artifact you accepted rests on inputs that have since moved.**
 Two consequences the rest of the design has to respect:
 
 - Nothing re-runs automatically. Staleness is surfaced to a person, who decides
-  whether the change matters. There is no `make` in this system.
+  whether the change matters. There is no `make` in this system, and §8's
+  watcher does not create one.
 - Re-running is a new derivation, not a repair. The previous artifact and its
   run remain in the log as evidence of what was true when it was approved.
 
@@ -240,17 +391,22 @@ type Event = {
 }
 
 type EventKind =
-  | "NodeCreated" | "IntentChanged"
+  | "NodeCreated" | "IntentChanged" | "NodeDeleted"
   | "EdgeAdded" | "EdgeRemoved"
-  | "RunStarted" | "RunProgressed" | "RunFailed" | "ArtifactProduced"
-  | "GateDecided" | "NodeDeleted" | "SubtreeCollapsed"
+  | "RunStarted" | "MessageSent" | "RunProgressed"
+  | "ArtifactProduced" | "RunFailed"
+  | "ApprovalDecided"
 ```
+
+`actor` earns its place today, single-player: whether you or the agent changed
+an intent is a question you will ask.
 
 Four things fall out of this mechanism for free:
 
 - **Time.** The state at moment `T` is the fold up to `T`. The timeline in the
   interface needs no separate machinery.
 - **Branching.** A fork is a new log beginning from a prefix of an existing one.
+  Not designed for, not designed against.
 - **Audit.** Who did what is a property of the schema, not a subsystem.
 - **Multiplayer, later.** Events are addressed to nodes, so work in different
   nodes does not conflict. Nothing else in the design has to change for it.
@@ -260,35 +416,41 @@ whole snapshot under a file lock is what turns a canvas back into a queue.
 
 ### Ordering
 
-Ordering within a single node is strict. Across nodes it is partial, and no
-global order exists or is required.
+Ordering within a single node is strict. Across nodes it is partial.
 
-That is a real constraint on the fold, not a slogan. It means the fold must
-reach the same state for any valid interleaving of events from different nodes.
-The one place this bites is `inputDigest`: if the fold recomputed it at the
-moment `ArtifactProduced` is applied, the value would depend on whether an
-upstream artifact happened to be folded first.
+The fold must therefore reach the same state for any valid interleaving of
+events from different nodes. The one place this bites is `inputDigest`: if the
+fold recomputed it at the moment `ArtifactProduced` is applied, the value would
+depend on whether an upstream artifact happened to be folded first.
 
 So **`inputDigest` is recorded in the `ArtifactProduced` payload** by whoever
-produced it. The producer states which inputs it consumed; the fold only
-records the claim. Order-independence follows.
+produced it. The producer states which inputs it consumed; the fold only records
+the claim. Order-independence follows.
+
+This is right regardless of multiplayer — a fold whose result depends on
+evaluation order is a fold with a bug in it. Multiplayer is not the
+justification, only a later beneficiary.
 
 Timestamps are advisory. Log order is authoritative. Clocks on two machines
 cannot be compared, and a validation rule built on comparing them would have to
 be removed the moment multiplayer arrives.
 
-### Runs and gates
+### Runs and approvals
 
-A run is created by `RunStarted`, advanced by `RunProgressed`, and ends at
-either `RunFailed` or `ArtifactProduced`. Failure is its own event kind so that
-"this run is over" is legible from the kind alone — the WS stream and every
-subscriber downstream of it will need that.
+A run is created by `RunStarted` and carries a session id. `MessageSent`
+records a person's turn, `RunProgressed` the agent's. `ArtifactProduced`
+records an artifact **without ending the run** — a run may produce several. Only
+`RunFailed` ends one, and it is its own kind so that "this run is over" is
+legible from the kind alone; the WS stream and every subscriber downstream of it
+will need that.
 
-A gate has no executor: a person supplies the artifact. `GateDecided` carries
-`approve` or `reject`. Approval records an artifact and its digest, exactly as a
-run would. Rejection is durable and distinct from silence — an undecided gate is
-waiting, a rejected one has been answered, and the subtree stays blocked for
-different reasons that the interface should not conflate.
+A run is superseded by the next `RunStarted` on the same node. There is no
+explicit end event, because a session that is merely idle is not finished.
+
+`ApprovalDecided` carries `approve` or `reject` against a node's artifact.
+Rejection is durable and distinct from silence — an undecided artifact is
+`pending`, a rejected one has been answered, and the subtree below is blocked
+for reasons the interface must not conflate.
 
 Decisions and runs live in the folded state next to nodes and edges. Neither is
 a field on `Node`: state is computed, and that rule has no exceptions.
@@ -312,11 +474,12 @@ A separate module, because this is where the product's difference lives.
 For a node `N`:
 
 1. Collect the incoming edges.
-2. `artifact` — inline the source's content, or the slice named by `selector`.
+2. `artifact` — inline the source's content, or the slice named by `selector`,
+   formatted according to its `ArtifactKind`.
 3. `reference` — **do not inline**; give the executor access as a tool: a
    repository path, a dataset descriptor.
-4. `normative` — gather from the whole ancestor chain, deduplicate, and place
-   as rules ahead of the intent.
+4. `normative` — gather from the whole ancestor chain, deduplicate by edge id,
+   and place as rules ahead of the intent.
 5. Compute the budget and return the breakdown per edge alongside the context.
 
 **Never truncate silently.** Exceeding the budget comes back as a state on the
@@ -338,7 +501,6 @@ Implementations:
 - `command` — a deterministic shell step. **Built first**, because it is the
   cheapest way to prove the whole graph cycle works.
 - `claude` — spawn the CLI, parse stream-json, resume sessions.
-- `decision` — a gate; no execution, a person produces the artifact.
 
 One run, one git worktree. Sibling branches get their own worktrees and compute
 in parallel. The artifact of a derivation over a repository is a patch, applied
@@ -346,8 +508,19 @@ three-way on approval.
 
 **This layer is ported from `worker/` literally, line for line.** Process spawn,
 stream parsing, worktrees, patch application, killing process groups — there is
-nothing to improve there and everything to break. The tests move first and
-become the acceptance specification; the implementation follows until they pass.
+nothing to improve there and everything to break. §9 describes the safety net.
+
+### Watchers
+
+A watcher observes a `source`. When the source moves, the watcher updates that
+source's artifact, and downstream `artifact` edges go stale by the ordinary
+one-hop rule.
+
+**A watcher never starts a run.** It introduces no new execution semantics at
+all — it is a producer of source artifacts, and everything after that is the
+existing model. "Nothing runs unasked" survives, and nothing spends money
+overnight producing diffs no one requested. If auto-run is ever wanted, it is a
+flag on the watcher, not a redesign.
 
 ---
 
@@ -359,18 +532,48 @@ become the acceptance specification; the implementation follows until they pass.
 - a git worktree per run, and cleanup after a crash
 - three-way patch application, commits, dirty-tree handling
 - process group termination
-- **the tests for all of it, first, as the acceptance specification**
+
+### The safety net
+
+The Go suite is 4,695 lines and each line is a bug someone already caught. It
+cannot be *ported*: Go tests test Go code, so they can only be re-authored by
+hand — and a mis-translated test **passes while asserting nothing**. A green
+suite that proves less than you believe is the worst outcome available here.
+
+So the acceptance specification is behavioural instead:
+
+- **A recorded scenario suite.** Fixture repositories driven through the 19 CLI
+  commands with `local_command_worker`, which is deterministic, capturing
+  `status --json` at every step. Recorded against the Go binary, replayed
+  against `core`, diffed. Nothing is copied by hand: the assertion *is* the
+  recording.
+- **Stream fixtures.** Real Claude stream-json output recorded once, replayed
+  forever, the parse compared.
+- **Ordinary unit tests** for `graph`, `eventlog`, `context` — new code with no
+  old behaviour to compare against.
+
+Volatile fields — ids, timestamps, temporary paths — are normalised before
+diffing. Non-deterministic Claude runs are out of reach of this technique, which
+is why the deterministic git/patch/worktree machinery is what it covers: the
+part that is both scary and reproducible.
+
+**The recordings must be captured while `worker/` still runs.** Delete it first
+and the reference is gone permanently, along with any ability to answer whether
+the new thing does what the old one did.
 
 **Ported with rework:**
 
-- `review`, `chat`, `intake`, `ui` — largely as they are
+- `review`, `intake`, `ui` — largely as they are
+- `chat` — reworked against the new run model, where a run is a session that
+  may produce several artifacts
 - `workspace` — from `tauri.invoke` to an HTTP/WS client
 - `canvas` — onto the new graph model
 
 **Deleted:**
 
 - `app/src-tauri` — pass-through commands no scenario needs
-- `worker/` — once its tests pass against `core`
+- `worker/` — after the scenario suite is green and 0.0.3 has been used for a
+  week, in its own commit, not as part of the release
 - `edge.kind: "then"` — order is derived, not declared
 - `store.Update(whole state)` — replaced by the event log
 - stored node statuses — computed
@@ -381,7 +584,7 @@ become the acceptance specification; the implementation follows until they pass.
 
 - edges as entities with apertures
 - `context` as its own module
-- `gate` and `group` as node kinds
+- `watcher` as a node kind; approval as a flag
 - the event log, the fold, time and forking
 - HTTP/WS as the only way into the core
 
@@ -399,6 +602,16 @@ that; it is a run mode, not a rewrite. It is deliberately not being built now.
 **Desktop.** Electron around the same web client. A window, starting the server,
 a tray icon, updates. A day or two, whenever it is actually wanted.
 
+**Automation.** The pull toward n8n-shaped triggers has now recurred several
+times, and a watcher that starts runs is its smallest form. It is deliberately
+not smuggled in here: if automation is the destination, that changes what the
+canvas is for, and it deserves its own decision rather than a table row in a
+rewrite.
+
+**Concurrency as the product.** Orbital's one structural advantage over a chat
+window — a worktree per run, N missions at once — has never actually been
+exercised. The plan does not answer that question and does not pretend to.
+
 ---
 
 ## 11. Order
@@ -407,9 +620,10 @@ In detail: [orbital-plan.md](orbital-plan.md). In short:
 
 1. Pure domain — graph, edges, events, computed freshness
 2. Persistence and API
-3. Client on HTTP, Tauri shell deleted — **first demonstrable point**
-4. A minimal shell-command executor — **the full cycle proven**
+3. A minimal shell-command executor — **the model is proven or it is not**
+4. Client on HTTP, Tauri shell deleted — first demonstrable point
 5. Context assembly — apertures become real
-6. The Claude executor — tests first, translation literal
-7. Gates, groups, the canvas at scale
-8. Replace `main`, release 0.0.3
+6. The Claude executor — recorded behaviour first, translation literal
+7. Parity — the rest of the 19 commands, the gate, branches, diffs, transcript
+8. Watchers, groups, the canvas at scale
+9. Replace `main`, release 0.0.3
