@@ -1,217 +1,225 @@
-# Orbital — план переходу на `next`
+# Orbital — Migration Plan
 
-Супутник до `orbital-architecture.md`. Той документ описує **що** будується,
-цей — **у якому порядку**.
+A companion to [orbital-architecture.md](orbital-architecture.md). That document
+describes **what** is being built; this one describes **in what order**.
 
-Два принципи, на яких тримається послідовність:
+Two principles hold the sequence together.
 
-**Вертикальний зріз якнайраніше.** Кожна фаза закінчується чимось, що можна
-запустити й показати. Не «доменний шар готовий», а «створив вузол — він
-відпрацював — нащадок став застарілим».
+**A vertical slice as early as possible.** Every phase ends in something that can
+be run and shown. Not "the domain layer is finished", but "I created a node, it
+ran, and its child went stale."
 
-**Тести попереду реалізації там, де код переноситься.** У `worker/` 4 695
-рядків тестів, кожен з яких — колись зловлений баг. Це головний актив
-переписування. Перенесені тести стають специфікацією приймання.
+**Tests ahead of implementation wherever code is being carried over.** There are
+4,695 lines of tests in `worker/`, and each one is a bug someone already caught.
+That is the single most valuable asset in this rewrite. Ported tests become the
+acceptance specification.
 
----
-
-## Фаза 0 — Підготовка
-
-**Мета:** гілка й каркас, щоб далі не відволікатись на інфраструктуру.
-
-- Гілка `next` від `main`
-- `.plans/orbital-architecture.md` і цей план — у репозиторій, першим комітом
-- Каркас `core/`: TypeScript strict, vitest, без `any`
-- `scripts/check.sh` отримує другі ворота: старі Go-тести **і** нові TS
-
-`worker/` не чіпається. Він лишається референсом до самого кінця.
-
-**Готово коли:** CI зелений на обох воротах, `core/` збирається порожнім.
+Work happens on the `next` branch.
 
 ---
 
-## Фаза 1 — Чистий домен
+## Phase 0 — Preparation
 
-**Мета:** модель графа й журнал подій, без жодного I/O.
+**Goal:** a branch and a skeleton, so infrastructure stops being a distraction.
 
-- Вузли: `source | derivation | gate | group | watcher`
-- Ребра як сутності з апертурами `artifact | reference | normative`
-- Відбиток входів, обчислюваний стан (`fresh/stale/empty/running/blocked/failed`)
-- Журнал подій, згортка, згортка до моменту часу, форк гілки
-- Відхилення невалідних графів: цикли, ребра в неіснуючі вузли, дублікати
+- `next` branched from `main`
+- the architecture document and this plan committed first
+- `core/` skeleton: TypeScript strict, vitest, no `any`, a lint rule forbidding
+  `fs` / `net` / `child_process` so purity is enforced rather than hoped for
+- `scripts/check.sh` gains a second gate: the existing Go tests **and** the new
+  TypeScript ones
 
-**Готово коли:** тести покривають кожен стан із таблиці, поширення застарілості
-через кожну апертуру, нормативне успадкування вниз по піддереву, детермінізм
-згортки. Жоден тест не торкається файлової системи.
+`worker/` is not touched. It remains the reference until the very end.
 
-**Ризик:** спокуса «заодно» додати планувальник і сховище. Не додавати. Цей
-шар має лишитись чистим назавжди — на ньому тримається все інше.
+**Done when:** CI is green on both gates and an empty `core/` builds.
 
 ---
 
-## Фаза 2 — Персистентність і API
+## Phase 1 — The pure domain
 
-**Мета:** стан переживає перезапуск, клієнт має до чого підключитись.
+**Goal:** the graph model and the event log, with no I/O whatsoever.
 
-- Інтерфейс `store`, реалізація на SQLite
-- Журнал подій пишеться інкрементально — **не** перезапис усього знімка
-- HTTP для команд і запитів
-- WS для потоку подій
-- Знімки для швидкої згортки
+- node kinds: `source | derivation | gate | group | watcher`
+- edges as entities, with the `artifact | reference | normative` apertures
+- the input digest, and state computed from it —
+  `fresh / stale / empty / running / blocked / failed`
+- the event log, the fold, folding to a moment in time, forking a branch
+- explicit rejection of invalid graphs: cycles, edges to missing nodes,
+  duplicates
 
-**Готово коли:** через HTTP створюються вузли й ребра, WS віддає потік подій,
-після рестарту стан ідентичний.
+**Done when:** tests cover every state in the table, staleness propagation
+through each aperture, normative inheritance down a subtree, and fold
+determinism. No test touches the filesystem.
 
-Виконання ще немає. Це навмисно.
-
----
-
-## Фаза 3 — Клієнт на HTTP, оболонка видалена
-
-**Мета:** перша версія, яку можна показати людині.
-
-- `app/src/workspace` перестає використовувати `tauri.invoke`, ходить у HTTP/WS
-- `app/src/canvas` переводиться на нову модель: види вузлів, апертури ребер,
-  обчислювані стани
-- `app/src-tauri` видаляється
-- `core` віддає клієнт на `localhost`
-
-**Готово коли:** відкриваєш вкладку браузера, бачиш полотно, створюєш вузли й
-ребра, стани оновлюються в реальному часі. Десктопної оболонки не існує.
-
-**Це перша демонстрована точка.** Показати живій людині вже тут, до того як
-щось виконується — саме на цьому етапі перевіряється, чи граф читається без
-інструктажу.
-
-Побічно: дев-цикл прискорюється — hot reload і devtools замість перезбірки Tauri.
+**Risk:** the temptation to add the scheduler and the store "while we're here".
+Do not. This layer has to stay pure permanently — everything else rests on it.
 
 ---
 
-## Фаза 4 — Мінімальне виконання
+## Phase 2 — Persistence and the API
 
-**Мета:** довести повний цикл продукту найдешевшим способом.
+**Goal:** state survives a restart, and the client has something to connect to.
 
-- Виконавець за інтерфейсом, одна реалізація: **shell-команда**
-  (аналог `local_command_worker` — найпростіший у `worker/`)
-- Планувальник у мінімумі: які вузли готові, диспетчеризація, скасування
-- Артефакт зберігається, `inputDigest` фіксується
+- a `store` interface, implemented on SQLite
+- the event log written incrementally — **not** by rewriting a whole snapshot
+- HTTP for commands and queries
+- WS for the event stream
+- snapshots, so folding stays fast
 
-**Готово коли:** створив вузол → він відпрацював → з'явився артефакт → змінив
-вхід → нащадок став `stale` і це видно на полотні.
+**Done when:** nodes and edges can be created over HTTP, WS delivers the event
+stream, and state after a restart is identical.
 
-**Це найважливіша фаза плану.** Тут уперше перевіряється, чи вся конструкція —
-похідності, апертури, обчислювана свіжість — працює як задумано. Якщо десь
-помилка в моделі, вона виявиться саме тут, поки ціна виправлення ще мала.
-
----
-
-## Фаза 5 — Збирач контексту
-
-**Мета:** апертури стають справжніми, а не декларативними.
-
-- `artifact` вставляє вміст, `reference` видає доступ, `normative` збирається
-  з усього ланцюга предків і дедуплікується
-- Бюджет рахується і повертається клієнту розкладкою по ребрах
-- **Ніколи не обрізати мовчки** — перевищення повертається як стан вузла
-
-**Готово коли:** панель вузла показує, яке ребро скільки займає, і сумарний
-бюджет.
-
-Це відмінність продукту. До цієї фази Orbital — гарне полотно; після неї —
-єдиний інструмент, де контекстом керують топологією.
+There is still no execution. That is deliberate.
 
 ---
 
-## Фаза 6 — Виконавець Claude
+## Phase 3 — Client on HTTP, shell deleted
 
-**Мета:** перенести найдорожче, нічого не втративши.
+**Goal:** the first version that can be put in front of a person.
 
-**Порядок усередині фази обов'язковий:**
+- `app/src/workspace` stops using `tauri.invoke` and talks HTTP/WS
+- `app/src/canvas` moves to the new model: node kinds, edge apertures, computed
+  state
+- `app/src-tauri` is deleted
+- `core` serves the client on `localhost`
 
-1. Спершу перенести тести з `worker/`: `claude_agent_worker_test`,
+**Done when:** you open a browser tab, see the canvas, create nodes and edges,
+and watch state update live. The desktop shell no longer exists.
+
+**This is the first demonstrable point.** Show it to a person who has never seen
+Orbital, before anything executes, and watch in silence whether the canvas reads
+without a briefing. That test is much cheaper here than after phase 6.
+
+A side effect: the development loop gets faster — hot reload and devtools
+instead of rebuilding Tauri.
+
+---
+
+## Phase 4 — Minimal execution
+
+**Goal:** prove the full product cycle the cheapest way possible.
+
+- an executor behind the interface, with one implementation: a **shell command**
+  (the analogue of `local_command_worker`, the simplest thing in `worker/`)
+- a minimal scheduler: which nodes are runnable, dispatch, cancellation
+- the artifact is stored and `inputDigest` is recorded
+
+**Done when:** you create a node → it runs → an artifact appears → you change an
+input → its child becomes `stale` and that is visible on the canvas.
+
+**This is the most important phase in the plan.** It is the first time the whole
+construction — derivations, apertures, computed freshness — is tested as a
+working thing. If the model is wrong somewhere, it surfaces here, while fixing
+it is still cheap.
+
+---
+
+## Phase 5 — Context assembly
+
+**Goal:** apertures become real rather than declarative.
+
+- `artifact` inlines content, `reference` grants access, `normative` is gathered
+  from the whole ancestor chain and deduplicated
+- the budget is computed and returned to the client, broken down per edge
+- **never truncate silently** — exceeding the budget comes back as node state
+
+**Done when:** the node panel shows what each edge costs and the total budget.
+
+This is the product's differentiator. Before this phase Orbital is a good
+canvas; after it, it is the only tool where context is controlled by topology.
+
+---
+
+## Phase 6 — The Claude executor
+
+**Goal:** carry over the most expensive thing without losing any of it.
+
+**The order inside this phase is mandatory:**
+
+1. First port the tests from `worker/`: `claude_agent_worker_test`,
    `claude_api_test`, `agent_run_test`, `patch_3way_test`,
    `patch_dirty_tree_test`, `apply_worktree_test`, `worktree_test`,
    `spawn_child_run_test`
-2. Потім реалізацію — доки всі перенесені тести не зелені
+2. Then the implementation, until every ported test is green
 
-**Перекладати буквально.** Спавн CLI, розбір stream-json, відновлення сесії,
-git-worktree на запуск, трьохстороннє накладання патчів, вбивання групи
-процесів. Тут немає чого покращувати — є тільки шанс відтворити полагоджені
-баги.
+**Translate literally.** CLI spawn, stream-json parsing, session resumption, a
+git worktree per run, three-way patch application, process group termination.
+There is nothing to improve here — only an opportunity to reintroduce bugs that
+have already been fixed once.
 
-**Готово коли:** перенесений набір тестів зелений, вузол реально запускає
-Claude і повертає дифф, патч накладається на схвалення.
+**Done when:** the ported suite is green, a node really runs Claude and returns
+a diff, and the patch applies on approval.
 
-**Ризик найвищий у плані.** Процесна модель Node інша: сигнали, групи процесів,
-прибирання worktree після падіння. Закладай тут більше часу, ніж здається.
-
----
-
-## Фаза 7 — Шлюзи, групи, полотно
-
-**Мета:** те, заради чого граф узагалі потрібен.
-
-- `gate`: рішення людини блокує нащадків структурно
-- `group`: згортання піддерева в один вузол, фрактально
-- Розкладка обчислювана, позиції стабільні між перерахунками
-- Хвиля застарілості візуалізована
-- Часова смуга поверх згортки до моменту
-
-**Готово коли:** полотно лишається читабельним на сотні вузлів, а зміна входу
-видимо забарвлює те, що вона зачепить.
+**The highest risk in the plan.** Node's process model is different: signals,
+process groups, cleaning up worktrees after a crash. Budget more time here than
+seems reasonable.
 
 ---
 
-## Фаза 8 — Заміщення
+## Phase 7 — Gates, groups, the canvas
 
-- `git tag v0.0.2-legacy` на поточному `main`
-- Видалити `worker/` одним комітом
-- `next` стає `main` заміщенням, не мержем
-- Реліз `0.0.3`
-- Інсталятор і релізний конвеєр перемикаються останніми
+**Goal:** the reason for having a graph at all.
 
----
+- `gate`: a human decision blocks descendants structurally
+- `group`: a subtree collapsed into a single node, fractally
+- computed layout, with positions stable between recalculations
+- the staleness wave made visible
+- a timeline over folding-to-a-moment
 
-## Після, окремими рішеннями
-
-**Мультиплеєр:** режим координатора, `sync`, присутність, ідентичність на
-вузлах. Це режим запуску, а не переписування — архітектура вже його тримає.
-
-**Десктоп:** Electron навколо того самого веб-клієнта. Вікно, запуск сервера,
-трей, оновлення. Робиться тоді, коли справді знадобиться, і займає день-два.
+**Done when:** the canvas stays readable at a hundred nodes, and changing an
+input visibly colours everything it will touch.
 
 ---
 
-## Паралельна лінія: `main` лишається живим
+## Phase 8 — Replacement
 
-Поки йде `next`, публічна гілка не повинна замовкнути. Це єдиний по-справжньому
-поганий сигнал для будь-кого, хто зазирне.
-
-Дрібні фікси, документація, відповіді в issues. Нічого вигадувати не треба —
-достатньо, щоб репозиторій виглядав робочим.
-
----
-
-## Чекпойнти
-
-**Після фази 3** — перша перевірка ззовні. Показати людині, яка не бачила
-Orbital, і мовчки подивитись, чи вона зрозуміє полотно. Це дешевше зробити тут,
-ніж після фази 6.
-
-**Через два тижні від старту** — чесне питання: нове робить те саме, що старе?
-Якщо ні — це не поразка, а дані про справжній масштаб. Скоригувати оцінку, а
-не план.
+- `git tag v0.0.2-legacy` on the current `main`
+- delete `worker/` in a single commit
+- `next` replaces `main` — a replacement, not a merge
+- release `0.0.3`
+- the installer and the release pipeline switch over last
 
 ---
 
-## Про терміни
+## Afterwards, as separate decisions
 
-Фази 0–4 — це те, що генерується швидко: чиста логіка, типи, HTTP, простий
-виконавець.
+**Multiplayer.** Coordinator mode, `sync`, presence, identity on nodes. A run
+mode rather than a rewrite — the architecture already holds it.
 
-Фаза 6 — інша природа роботи. Процеси, сигнали, крайні випадки стріму,
-прибирання після падінь. Це не пишеться, це налагоджується, і саме тут
-з'їдається основний час.
+**Desktop.** Electron around the same web client. A window, starting the server,
+a tray icon, updates. Done when it is actually needed; a day or two.
 
-Тому не плануй загальний термін. Плануй до фази 4 — після неї в тебе буде
-робоча система і реальні дані про власну швидкість.
+---
+
+## `main` stays alive in parallel
+
+While `next` is in progress the public branch must not go quiet. That is the one
+genuinely bad signal for anyone who looks.
+
+Small fixes, documentation, answers in issues. Nothing needs inventing — it is
+enough that the repository looks worked on.
+
+---
+
+## Checkpoints
+
+**After phase 3** — the first outside check. Show it to someone who has never
+seen Orbital and say nothing.
+
+**Two weeks in** — an honest question: does the new thing do what the old one
+did? If not, that is not a failure, it is data about the real size of the job.
+Adjust the estimate, not the plan.
+
+---
+
+## On timelines
+
+Phases 0–4 are the parts that come quickly: pure logic, types, HTTP, a simple
+executor.
+
+Phase 6 is a different kind of work. Processes, signals, streaming edge cases,
+cleanup after crashes. That is not written, it is debugged, and it is where the
+time actually goes.
+
+So do not plan an overall date. Plan as far as phase 4. After it you will have a
+working system and real data about your own speed.
