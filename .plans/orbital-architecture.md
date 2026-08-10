@@ -149,13 +149,17 @@ fold the log locally for optimistic canvas updates, which a Go core cannot give.
 
 The costs are real and are work items, not objections:
 
-- 5,138 lines of hand-conversion in the layer where the instruction is *change
-  nothing*. §9 and the plan's phase 6 exist to contain this.
-- Process-group termination and crash cleanup are harder in Node than
-  `syscall.Kill(-pgid)`. Orphaned `claude` processes are the failure mode to
-  watch for.
 - Distribution loses the single static binary. Electron will need a bundled
   runtime — `bun build --compile`, Node SEA, or shipping Node.
+- Worktree management and patch application still move by hand. §9 and the
+  plan's phase 6 exist to contain that.
+
+Two costs an earlier draft listed have largely evaporated, and for a reason
+worth recording: the Claude Agent SDK (§8) is TypeScript/Python only. It owns
+process spawn, stream parsing, session resumption and termination — so the
+hand-conversion of the layer that must not change, and Node's weaker process
+control, are both mostly moot. **A Go worker could never have used it.** The
+decision to move everything is what makes the SDK available.
 
 Until Electron exists, Orbital is a browser tab on `localhost`. The installer
 and release pipeline stay frozen at v0.0.2 and testers stay on the old build.
@@ -546,15 +550,34 @@ Implementations:
 
 - `command` — a deterministic shell step. **Built first**, because it is the
   cheapest way to prove the whole graph cycle works.
-- `claude` — spawn the CLI, parse stream-json, resume sessions.
+- `claude` — the **Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`).
 
 One run, one git worktree. Sibling branches get their own worktrees and compute
 in parallel. The artifact of a derivation over a repository is a patch, applied
 three-way on approval.
 
-**This layer is ported from `worker/` literally, line for line.** Process spawn,
-stream parsing, worktrees, patch application, killing process groups — there is
-nothing to improve there and everything to break. §9 describes the safety net.
+### Why the SDK rather than a port
+
+The SDK is Claude Code published as a TypeScript library. It spawns the `claude`
+CLI internally, bundling a per-platform binary — a first-party, maintained
+version of what `worker/` does by hand:
+
+| `worker/` today | Agent SDK |
+|---|---|
+| spawn the CLI, manage the process | the SDK owns it |
+| parse stream-json to a lossy `(kind, string)` | `query()` → async generator of typed `SDKMessage`, including tool **results** |
+| `--resume <id>` plumbing | `resume`, `continue`, `forkSession`, `resumeSessionAt` |
+| `syscall.Kill(-pgid)` | `query.interrupt()` / `close()` |
+| worktree path handed to the process | `cwd` |
+| approve/reject gate | `permissionMode` + `canUseTool` |
+
+`query()` returning an async generator is the `Executor` interface above,
+already. And the SDK is TypeScript/Python only — a Go worker could never have
+used it, so §2's decision is what makes this available at all.
+
+**What remains Orbital's own**, and is still ported carefully: worktrees and
+their cleanup after a crash, three-way patch application, dirty-tree handling.
+That layer is deterministic, and §9 describes the safety net for it.
 
 ### Watchers
 
@@ -572,12 +595,13 @@ flag on the watcher, not a redesign.
 
 ## 9. What goes, what carries over
 
-**Ported literally** — the most expensive thing that exists today:
+**Ported carefully** — what the Agent SDK does not cover:
 
-- Claude CLI spawn, stream-json parsing, session resumption
 - a git worktree per run, and cleanup after a crash
 - three-way patch application, commits, dirty-tree handling
-- process group termination
+
+Claude CLI spawn, stream parsing, session resumption and process termination are
+**not ported at all** — the SDK owns them (§8).
 
 ### The safety net
 
@@ -593,10 +617,11 @@ So the acceptance specification is behavioural instead:
   `status --json` at every step. Recorded against the Go binary, replayed
   against `core`, diffed. Nothing is copied by hand: the assertion *is* the
   recording.
-- **Stream fixtures.** Real Claude stream-json output recorded once, replayed
-  forever, the parse compared.
 - **Ordinary unit tests** for `graph`, `eventlog`, `context` — new code with no
   old behaviour to compare against.
+
+An earlier draft added stream-json fixtures to protect a hand-written parser.
+There is no hand-written parser; that limb is dropped.
 
 Volatile fields — ids, timestamps, temporary paths — are normalised before
 diffing. Non-deterministic Claude runs are out of reach of this technique, which
@@ -654,6 +679,15 @@ times, and a watcher that starts runs is its smallest form. It is deliberately
 not smuggled in here: if automation is the destination, that changes what the
 canvas is for, and it deserves its own decision rather than a table row in a
 rewrite.
+
+**Other agents.** The Agent Client Protocol standardises editor↔agent
+communication so one client can drive any agent — Codex, Cursor, Gemini. That is
+the shape of a real answer to *"I do basically the same in Orbital and Claude
+Code"*: a control surface for several agents is something a single chat window
+structurally cannot be. It is also a change to what Orbital is, so it sits here
+rather than in §8. `Executor` is an interface; ACP would be a third
+implementation beside `command` and `claude`, and nothing above has to change
+for it.
 
 **Concurrency as the product.** Orbital's one structural advantage over a chat
 window — a worktree per run, N missions at once — has never actually been

@@ -60,7 +60,8 @@ behaves — so infrastructure and the reference both stop being distractions.
   TypeScript ones
 - **the scenario recordings are captured** — fixture repositories driven through
   the CLI with `local_command_worker`, `status --json` captured at every step,
-  volatile fields normalised. Plus stream-json fixtures from real Claude output.
+  volatile fields normalised. No stream-json fixtures — the Agent SDK parses
+  the stream, so there is no hand-written parser to protect.
 
 `worker/` is not touched. It remains the reference until the very end.
 
@@ -190,25 +191,31 @@ executor can be verified as correct, but not as *good*.
 
 ## Phase 6 — The Claude executor
 
-**Goal:** carry over the most expensive thing without losing any of it.
+**Goal:** run Claude for real, without re-implementing what is already a library.
 
-**Translate literally.** CLI spawn, stream-json parsing, session resumption, a
-git worktree per run, three-way patch application, process group termination.
-There is nothing to improve here — only an opportunity to reintroduce bugs that
-have already been fixed once.
+**Use `@anthropic-ai/claude-agent-sdk`.** It is Claude Code as a TypeScript
+library, spawning the `claude` CLI internally. `query()` returns an async
+generator of typed `SDKMessage` — which *is* the `Executor` interface — and it
+already owns process management, stream parsing, session resumption (`resume` /
+`continue` / `forkSession`), cancellation (`interrupt()`), the working directory
+(`cwd`, pointed at the run's worktree), and the approval gate (`permissionMode`,
+`canUseTool`).
 
-The recordings from phase 0 are the specification. The stream fixtures come
-first, because the parser is pure and can be made green before a process is ever
-spawned.
+**What is still carried over by hand**, and where the care goes:
 
-**Done when:** the scenario recordings replay green against the new server, a node really
-runs Claude and returns a diff, Continue resumes a session, and the patch applies
-on approval.
+- a git worktree per run, and cleanup after a crash
+- three-way patch application, commits, dirty-tree handling
 
-**The highest risk in the plan.** Node's process model is the weak point:
-`syscall.Kill(-pgid)` becomes `detached` process groups, and orphaned `claude`
-processes are the failure to watch for. Worktree cleanup after a crash is the
-second. Budget more time here than seems reasonable.
+The phase-0 recordings are the specification for exactly that layer.
+
+**Done when:** the scenario recordings replay green against the new server, a
+node really runs Claude and returns a diff, Continue resumes a session through
+the SDK, and the patch applies on approval.
+
+**This is no longer the plan's highest risk.** The process model was the danger,
+and the SDK owns it. What remains — worktrees, patches, crash cleanup — is
+deterministic and covered by the recordings. Phase 7 is now the phase most likely
+to be underestimated.
 
 ---
 
@@ -323,10 +330,14 @@ the real size of the job. Adjust the estimate, not the plan.
 Phases 0–4 are the parts that come quickly: pure logic, types, tRPC, a simple
 executor, a client port.
 
-Phase 6 is a different kind of work. Processes, signals, streaming edge cases,
-cleanup after crashes. That is not written, it is debugged, and it is where the
-time actually goes. Phase 7 is the other kind that is always underestimated:
-nothing in it is hard, and there is a great deal of it.
+Phase 6 shrank when the Agent SDK replaced the hand-written executor. What is
+left of it — worktrees, patch application, cleanup after crashes — is still
+debugged rather than written, so it is still slower than it looks, but it is no
+longer the plan's centre of gravity.
+
+Phase 7 is now the one most likely to be underestimated: nothing in it is hard,
+and there is a great deal of it. That is the classic shape of a rewrite's last
+mile.
 
 So do not plan an overall date. Plan as far as phase 3. After it you will have a
 proven model and real data about your own speed.

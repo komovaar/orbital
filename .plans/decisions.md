@@ -274,8 +274,54 @@ Accepted costs: a dependency and a convention, and tRPC is a poor *public* API �
 if one is ever wanted it is a separate REST layer. The D6 recordings drive the
 CLI, not HTTP, so API inspectability is not a factor.
 
+## D15 — The Claude executor is the Agent SDK
+
+`@anthropic-ai/claude-agent-sdk` is Claude Code published as a TypeScript
+library. It spawns the `claude` CLI internally (bundling a per-platform binary)
+— a first-party, maintained version of what `worker/` does by hand.
+
+| `worker/` today | Agent SDK |
+|---|---|
+| spawn the CLI, manage the process | the SDK owns it |
+| parse stream-json to `onStep(kind, string)` | `query()` → async generator of typed `SDKMessage` (text, thinking, tool use *and results*, subagent progress) |
+| `--resume <id>` plumbing | `resume`, `continue`, `forkSession`, `resumeSessionAt`, `listSessions`, `getSessionMessages` |
+| `syscall.Kill(-pgid)` | `query.interrupt()` / `close()` |
+| worktree path handed to the process | `cwd` option |
+| approve/reject gate | `permissionMode` + `canUseTool` callback |
+
+Consequences:
+
+- **D4's two real costs mostly evaporate** — the hand-conversion of the layer
+  that must not change, and Node's weaker process control. The SDK is
+  TypeScript/Python only, so the Go worker could never have used it: the
+  all-TypeScript decision is what unlocks this.
+- **D6 loses a limb.** The stream-json fixture suite existed to protect a
+  hand-written parser; there is no hand-written parser. The recorded CLI
+  scenarios stay — they cover git, worktrees and patch application, which the
+  SDK does not touch.
+- Still Orbital's own, still deterministic, still covered by the recordings:
+  worktree creation and cleanup, three-way patch application, crash recovery.
+
+## D16 — ACP is a product question, parked
+
+The Agent Client Protocol standardises editor↔agent communication so one client
+can drive any agent — which is why [t3code](https://github.com/pingdotgg/t3code)
+carries `effect-acp` and supports Claude Code, Codex, Cursor, Grok and OpenCode.
+
+For driving Claude from TypeScript the Agent SDK is strictly better: first-party
+and richer. ACP's value would be **running other agents as executors**, which
+changes what Orbital is. Taken seriously but deliberately separated: it belongs
+next to the automation question in the architecture document's §10, not inside a
+rewrite.
+
+`Executor` is an interface (§8). ACP would be a third implementation beside
+`command` and `claude`. Choosing the SDK now forecloses nothing.
+
+*Unverified:* Claude Code's own ACP support level — the protocol docs do not
+list implementations.
+
 ---
 
 ## Open
 
-Nothing. Both documents rewritten from D0–D14.
+Nothing. Both documents rewritten from D0–D16.
