@@ -84,14 +84,45 @@ choice — it accumulated.
 
 The target is TypeScript end to end:
 
-- `worker/` (Go) is ported into `core/` and deleted
+- `worker/` (Go) is ported into `src/server/` and deleted
 - `app/src-tauri` (Rust) is deleted outright — eighteen pass-through commands
   that no scenario needs
 - the desktop shell becomes Electron, later, wrapped around the same web client
 
-The client is a web application. It talks to `core` over HTTP and WS, so it runs
+The client is a web application. It talks to the server over tRPC, so it runs
 identically in a browser tab and inside Electron. The shell stays thin: a
 window, a server process, a tray icon, updates.
+
+### Repo layout
+
+The file order follows create-t3-app, in **one package** — one `package.json`,
+one `tsconfig`, Vite building the client and a Node entry building the server:
+
+```
+src/
+  app/                    React client
+    canvas/  chat/  review/  intake/  shell/  ui/
+  server/
+    api/
+      routers/            node.ts · edge.ts · run.ts · graph.ts
+      root.ts
+      trpc.ts
+    graph/  eventlog/     pure
+    context/  scheduler/  artifacts/
+    executor/
+      command/  claude/
+    db.ts
+  trpc/                   client-side bridge
+  styles/
+```
+
+There is no `core/`. A directory named for what it excludes has no principle for
+what belongs in it, which is how three runtimes accumulated in the first place.
+
+Two places Orbital does not fit T3, neither of them a problem: T3's `server/`
+runs inside Next's request lifecycle, while Orbital's is a long-lived local
+process holding worktrees and Claude sessions; and under Electron it becomes the
+main process with `app/` as the renderer.
 
 ### What this costs, deliberately
 
@@ -126,9 +157,10 @@ That is a choice, taken knowingly.
 │  canvas · node panel                                 │
 │  an ordinary web app; runs in a tab                  │
 └───────────────┬──────────────────────────────────────┘
-                │  HTTP (commands, queries) + WS (event stream)
+                │  tRPC — queries and mutations, subscriptions for the
+                │  event stream. One contract, inferred on the client.
 ┌───────────────▼──────────────────────────────────────┐
-│  core (TypeScript, Node)                             │
+│  src/server (TypeScript, Node)                       │
 │                                                      │
 │  api ──► graph ──► scheduler ──► executor            │
 │           │            │             │               │
@@ -139,7 +171,7 @@ That is a choice, taken knowingly.
                 │
 ┌───────────────▼──────────────────────────────────────┐
 │  Shell (Electron) — later                            │
-│  window · starts core · tray · updates               │
+│  window · starts the server · tray · updates         │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -156,7 +188,7 @@ That is a choice, taken knowingly.
 | `executor` | worktrees, spawning the Claude CLI, run event streams | decide what to run |
 | `artifacts` | content-addressed storage of results | know the graph's shape |
 | `store` | persistence behind an interface (SQLite) | hold business logic |
-| `api` | HTTP commands, WS event stream | know graph semantics |
+| `api` | tRPC routers, subscription streams | know graph semantics |
 
 `graph` and `eventlog` are pure: no `fs`, no `net`, no `child_process`. They are
 the only place the semantics live, and they must be testable without a
@@ -441,7 +473,7 @@ A run is created by `RunStarted` and carries a session id. `MessageSent`
 records a person's turn, `RunProgressed` the agent's. `ArtifactProduced`
 records an artifact **without ending the run** — a run may produce several. Only
 `RunFailed` ends one, and it is its own kind so that "this run is over" is
-legible from the kind alone; the WS stream and every subscriber downstream of it
+legible from the kind alone; the subscription and every subscriber downstream of it
 will need that.
 
 A run is superseded by the next `RunStarted` on the same node. There is no
@@ -566,7 +598,7 @@ the new thing does what the old one did.
 - `review`, `intake`, `ui` — largely as they are
 - `chat` — reworked against the new run model, where a run is a session that
   may produce several artifacts
-- `workspace` — from `tauri.invoke` to an HTTP/WS client
+- `workspace` — from `tauri.invoke` to tRPC procedures and subscriptions
 - `canvas` — onto the new graph model
 
 **Deleted:**
@@ -586,7 +618,8 @@ the new thing does what the old one did.
 - `context` as its own module
 - `watcher` as a node kind; approval as a flag
 - the event log, the fold, time and forking
-- HTTP/WS as the only way into the core
+- tRPC as the only way into the server — one contract, written once, with the
+  client's types inferred from it rather than copied across the wire
 
 ---
 
@@ -621,7 +654,7 @@ In detail: [orbital-plan.md](orbital-plan.md). In short:
 1. Pure domain — graph, edges, events, computed freshness
 2. Persistence and API
 3. A minimal shell-command executor — **the model is proven or it is not**
-4. Client on HTTP, Tauri shell deleted — first demonstrable point
+4. Client on tRPC, Tauri shell deleted — first demonstrable point
 5. Context assembly — apertures become real
 6. The Claude executor — recorded behaviour first, translation literal
 7. Parity — the rest of the 19 commands, the gate, branches, diffs, transcript

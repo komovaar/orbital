@@ -187,8 +187,66 @@ Three changes to the phase order:
   produced, approval undecided) and `rejected`. An input counts as available
   only when it has an artifact *and* is approved where approval is required.
 
+## D13 — Repo layout: T3 file order, one package
+
+There is no `core/`. The layout follows create-t3-app, which resolves the naming
+question by replacing it — T3 has `src/server/`.
+
+```
+src/
+  app/                    React client (Vite)
+    canvas/  chat/  review/  intake/  shell/  ui/
+  server/
+    api/
+      routers/            node.ts · edge.ts · run.ts · graph.ts
+      root.ts
+      trpc.ts
+    graph/                pure
+    eventlog/             pure
+    context/
+    scheduler/
+    executor/
+      command/  claude/
+    artifacts/
+    db.ts
+  trpc/                   client-side bridge
+  styles/
+```
+
+**One package**, not a monorepo: one `package.json`, one `tsconfig`, Vite
+building the client and a Node entry building the server. That removes the
+packaging overhead that made a `domain/` + `server/` split expensive, so the
+purity rule stays a lint rule over `server/graph` and `server/eventlog`.
+
+Two places Orbital does not fit T3, neither of them a problem: T3's `server/`
+runs inside Next's request lifecycle, while Orbital's is a long-lived local
+process holding worktrees and Claude sessions; and under Electron it becomes the
+main process with `app/` as the renderer.
+
+`app/src/*` → `src/app/*` moves **now**, while the client is untouched, so the
+phase 4 rewrite lands in its final location instead of being followed by a
+second reshuffle.
+
+## D14 — tRPC, not hand-rolled HTTP + WS
+
+tRPC runs *on* HTTP and WS; the difference is that the contract is written once
+on the server and the client's types are derived from it.
+
+Rationale: D4's whole justification for one language was sharing the domain with
+the client. Plain HTTP discards that exactly at the boundary — TypeScript on both
+sides, types still copied by hand and kept in sync by discipline, which is the
+Go→TS problem relocated to the wire. The `EventKind` union alone would need
+eleven hand-written narrowings on the client that nothing verifies.
+
+Subscriptions carry the event stream as async generators, which maps directly
+onto `Executor.run(): AsyncIterable<RunEvent>`.
+
+Accepted costs: a dependency and a convention, and tRPC is a poor *public* API —
+if one is ever wanted it is a separate REST layer. The D6 recordings drive the
+CLI, not HTTP, so API inspectability is not a factor.
+
 ---
 
 ## Open
 
-Nothing. Both documents rewritten from D0–D12.
+Nothing. Both documents rewritten from D0–D14.

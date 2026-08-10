@@ -48,8 +48,13 @@ behaves — so infrastructure and the reference both stop being distractions.
 
 - `next` branched from `main`
 - the architecture document, this plan, and `decisions.md` committed first
-- `core/` skeleton: TypeScript strict, vitest, no `any`, a lint rule forbidding
-  `fs` / `net` / `child_process` so purity is enforced rather than hoped for
+- the T3 layout established: **`app/src/*` moves to `src/app/*` now**, while the
+  client is still untouched, so the phase 4 rewrite lands in its final location
+  rather than being followed by a second reshuffle
+- `src/server/` skeleton in the same package: TypeScript strict, vitest, no
+  `any`, a lint rule forbidding `fs` / `net` / `child_process` under
+  `server/graph` and `server/eventlog` so purity is enforced rather than hoped
+  for
 - `scripts/check.sh` gains a second gate: the existing Go tests **and** the new
   TypeScript ones
 - **the scenario recordings are captured** — fixture repositories driven through
@@ -58,8 +63,9 @@ behaves — so infrastructure and the reference both stop being distractions.
 
 `worker/` is not touched. It remains the reference until the very end.
 
-**Done when:** CI is green on both gates, an empty `core/` builds, and the
-recordings replay identically against the Go binary twice in a row.
+**Done when:** CI is green on both gates, the relocated client still builds and
+runs, an empty `src/server/` builds, and the recordings replay identically
+against the Go binary twice in a row.
 
 **Why the recordings come first:** they can only be made while the old worker
 runs. Everything after this phase is measured against them.
@@ -89,10 +95,10 @@ the filesystem.
 **Risk:** the temptation to add the scheduler and the store "while we're here".
 Do not. This layer has to stay pure permanently — everything else rests on it.
 
-**Note on where this already stands:** `core/src/graph` and `core/src/eventlog`
-exist and total roughly a thousand lines with **no tests**. They also predate
-every decision in `decisions.md`. Treat them as a sketch to be revised, and let
-the tests lead.
+**Note on where this already stands:** the scaffolded `core/src/graph` and
+`core/src/eventlog` total roughly a thousand lines with **no tests**, and they
+predate every decision in `decisions.md`. They move to `src/server/` as a sketch
+to be revised, not a foundation to extend. Let the tests lead.
 
 ---
 
@@ -103,12 +109,13 @@ the tests lead.
 - a `store` interface, implemented on SQLite
 - the event log written incrementally — **not** by rewriting a whole snapshot
 - a separate table for view state: group membership, pinned node positions
-- HTTP for commands and queries
-- WS for the event stream
+- tRPC: `server/api/routers/*` for queries and mutations, subscriptions for the
+  event stream, with the client's types inferred rather than declared
 - snapshots, so folding stays fast
 
-**Done when:** nodes and edges can be created over HTTP, WS delivers the event
-stream, and state after a restart is identical.
+**Done when:** nodes and edges can be created through tRPC procedures, a
+subscription delivers the event stream, renaming a field on the server breaks
+the client's build, and state after a restart is identical.
 
 There is still no execution, and still no client. That is deliberate.
 
@@ -138,15 +145,15 @@ it — which is the entire reason it now comes before the client.
 
 ---
 
-## Phase 4 — Client on HTTP, shell deleted
+## Phase 4 — Client on tRPC, shell deleted
 
 **Goal:** the first version that can be put in front of a person.
 
-- `app/src/workspace` stops using `tauri.invoke` and talks HTTP/WS
-- `app/src/canvas` moves to the new model: node kinds, edge apertures, computed
+- `src/app/workspace` stops using `tauri.invoke` and calls tRPC procedures
+- `src/app/canvas` moves to the new model: node kinds, edge apertures, computed
   state with its reasons, groups as collapsible boxes
 - `app/src-tauri` is deleted
-- `core` serves the client on `localhost`
+- the server serves the client on `localhost`
 
 **Done when:** you open a browser tab, see the canvas, create nodes and edges,
 run a shell derivation and watch state update live. The desktop shell no longer
@@ -193,7 +200,7 @@ The recordings from phase 0 are the specification. The stream fixtures come
 first, because the parser is pure and can be made green before a process is ever
 spawned.
 
-**Done when:** the scenario recordings replay green against `core`, a node really
+**Done when:** the scenario recordings replay green against the new server, a node really
 runs Claude and returns a diff, Continue resumes a session, and the patch applies
 on approval.
 
@@ -312,7 +319,7 @@ the real size of the job. Adjust the estimate, not the plan.
 
 ## On timelines
 
-Phases 0–4 are the parts that come quickly: pure logic, types, HTTP, a simple
+Phases 0–4 are the parts that come quickly: pure logic, types, tRPC, a simple
 executor, a client port.
 
 Phase 6 is a different kind of work. Processes, signals, streaming edge cases,
