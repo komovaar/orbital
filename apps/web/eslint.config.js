@@ -3,12 +3,12 @@ import reactHooks from "eslint-plugin-react-hooks";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", "src-tauri", "scripts"] },
+  { ignores: ["dist", "src-tauri", "scripts", "*.config.ts", "*.config.js"] },
   js.configs.recommended,
   tseslint.configs.recommended,
   reactHooks.configs.flat.recommended,
   {
-    files: ["src/**/*.{ts,tsx}"],
+    files: ["**/*.{ts,tsx}"],
     rules: {
       // The worker's NDJSON payloads arrive untyped; casts happen at the loader
       // boundary, so blanket bans on assertions would fight the architecture.

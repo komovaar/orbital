@@ -5,9 +5,9 @@
   "version": "0.0.2",
   "identifier": "dev.orbital.desktop",
   "build": {
-    "beforeDevCommand": "npm run build:worker && npm run dev",
+    "beforeDevCommand": "pnpm run build:worker && pnpm run dev",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "npm run build:worker && npm run build",
+    "beforeBuildCommand": "pnpm run build:worker && pnpm run build",
     "frontendDist": "../dist"
   },
   "app": {

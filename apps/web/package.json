@@ -1,11 +1,12 @@
 {
-  "name": "orbital",
+  "name": "@orbital/web",
   "private": true,
   "version": "0.0.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
