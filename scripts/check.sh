@@ -7,6 +7,11 @@ echo "== worker (Go)"
 (cd worker && go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2 run ./...)
 (cd worker && go test ./...)
 
+echo "== domain (TypeScript)"
+(cd packages/domain && npm run lint)
+(cd packages/domain && npx tsc --noEmit)
+(cd packages/domain && npx vitest run)
+
 echo "== desktop (TypeScript)"
 (cd app && npm run lint)
 (cd app && npx tsc --noEmit)
