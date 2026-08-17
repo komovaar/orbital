@@ -29,28 +29,25 @@ jobs:
         run: go test ./...
         working-directory: worker
 
-  frontend:
+  typescript:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: app/package-lock.json
+          cache: pnpm
 
-      - run: npm ci
-        working-directory: app
+      - run: pnpm install --frozen-lockfile
 
-      - run: npm run lint
-        working-directory: app
+      - run: pnpm -r lint
 
-      - run: npx tsc --noEmit
-        working-directory: app
+      - run: pnpm -r typecheck
 
-      - run: npm test
-        working-directory: app
+      - run: pnpm -r test
 
   tauri:
     runs-on: ubuntu-latest
@@ -64,7 +61,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: app/src-tauri
+          workspaces: apps/web/src-tauri
 
       - name: Install Linux system dependencies
         run: |
@@ -72,9 +69,12 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev \
             librsvg2-dev patchelf libssl-dev libxdo-dev
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: pnpm
 
       - uses: actions/setup-go@v5
         with:
@@ -84,16 +84,16 @@ jobs:
       # sidecar is missing, so nothing in this job compiles without it.
       - name: Build worker sidecar
         run: node scripts/build-worker.mjs
-        working-directory: app
+        working-directory: apps/web
 
       - name: cargo fmt
         run: cargo fmt --check
-        working-directory: app/src-tauri
+        working-directory: apps/web/src-tauri
 
       - name: cargo clippy
         run: cargo clippy --all-targets -- -D warnings
-        working-directory: app/src-tauri
+        working-directory: apps/web/src-tauri
 
       - name: cargo test
         run: cargo test
-        working-directory: app/src-tauri
+        working-directory: apps/web/src-tauri

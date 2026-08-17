@@ -52,11 +52,12 @@ jobs:
             echo "CHANGELOG_EOF"
           } >> "$GITHUB_OUTPUT"
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: app/package-lock.json
+          cache: pnpm
 
       - uses: actions/setup-go@v5
         with:
@@ -76,19 +77,18 @@ jobs:
             librsvg2-dev patchelf libssl-dev libxdo-dev
 
       - name: Install frontend dependencies
-        run: npm ci
-        working-directory: app
+        run: pnpm install --frozen-lockfile
 
       - name: Build worker sidecar
         run: node scripts/build-worker.mjs ${{ matrix.triple }}
-        working-directory: app
+        working-directory: apps/web
 
       - name: Build and upload bundles
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          projectPath: app
+          projectPath: apps/web
           tagName: ${{ github.ref_name }}
           releaseName: Orbital ${{ github.ref_name }}
           releaseBody: ${{ steps.changelog.outputs.body }}
@@ -105,7 +105,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          APP_DIR="app/src-tauri/target/${{ matrix.triple }}/release/bundle/macos"
+          APP_DIR="apps/web/src-tauri/target/${{ matrix.triple }}/release/bundle/macos"
           ARCH=$(echo "${{ matrix.triple }}" | cut -d- -f1)
           tar -czf "Orbital_${ARCH}.app.tar.gz" -C "$APP_DIR" Orbital.app
           gh release upload "${{ github.ref_name }}" "Orbital_${ARCH}.app.tar.gz" --clobber

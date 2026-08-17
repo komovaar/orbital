@@ -27,10 +27,10 @@ relicense it, which keeps Orbital's licensing under single-vendor control.
 
 ## Development
 
-The app lives in `app/`; run npm commands from there.
+The workspace is pnpm-managed; install once from the repository root.
 
 ```bash
-cd app && npm install && npm run tauri:dev
+pnpm install && cd apps/web && pnpm run tauri:dev
 ```
 
 Requires the Rust toolchain (pinned in `rust-toolchain.toml`), Go for the worker,

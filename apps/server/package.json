@@ -1,23 +1,22 @@
 {
-  "name": "@orbital/domain",
-  "exports": {
-    ".": "./src/index.ts",
-    "./testing": "./src/testing.ts"
-  },
+  "name": "@orbital/server",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "dev": "node --experimental-strip-types index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@orbital/domain": "workspace:*"
+  },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/node": "^24.3.0",
     "eslint": "^10.6.0",
-    "eslint-plugin-orbital": "workspace:*",
     "typescript": "^5.8.0",
     "typescript-eslint": "^8.62.1",
     "vitest": "^4.1.10"
