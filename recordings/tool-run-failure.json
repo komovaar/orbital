@@ -1,0 +1,153 @@
+{
+  "scenario": "tool-run-failure",
+  "steps": [
+    {
+      "command": [
+        "open",
+        "<repo>"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "queue",
+        "<repo>",
+        "run the broken step",
+        "--tool",
+        "echo nope >&2 && exit 3"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"run the broken step\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"kind\": \"tool\",\n      \"tool_command\": \"echo nope \\u003e\\u00262 \\u0026\\u0026 exit 3\"\n    }\n  ],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "run the broken step",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "echo nope >&2 && exit 3"
+          }
+        ],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "start-run",
+        "<repo>",
+        "$mission[0]"
+      ],
+      "exitCode": 0,
+      "stdout": "RUN:{\"id\":\"run_1\",\"mission_id\":\"mission_1\",\"worker_name\":\"local-command\",\"status\":\"running\",\"started_at\":\"<time>\"}\nEVENT:{\"id\":\"event_1\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"run_started\",\"message\":\"Local command worker started.\",\"created_at\":\"<time>\"}\nEVENT:{\"id\":\"event_2\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"command_executed\",\"message\":\"Local command started.\",\"command\":\"echo nope \\u003e\\u00262 \\u0026\\u0026 exit 3\",\"created_at\":\"<time>\"}\nEVENT:{\"id\":\"event_3\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"command_executed\",\"message\":\"Local command output: nope\",\"command\":\"echo nope \\u003e\\u00262 \\u0026\\u0026 exit 3\",\"created_at\":\"<time>\"}\nEVENT:{\"id\":\"event_4\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"run_failed\",\"message\":\"Local command failed: nope\",\"command\":\"echo nope \\u003e\\u00262 \\u0026\\u0026 exit 3\",\"created_at\":\"<time>\"}\nRUN:{\"id\":\"run_1\",\"mission_id\":\"mission_1\",\"worker_name\":\"local-command\",\"status\":\"failed\",\"started_at\":\"<time>\",\"completed_at\":\"<time>\",\"duration_ms\":0,\"worktree_path\":\"<repo>/.orbital/worktrees/run_1\"}\nSTATE:{\"repositories\":[{\"id\":\"repo_1\",\"path\":\"<repo>\",\"name\":\"repo\",\"branch\":\"main\",\"created_at\":\"<time>\"}],\"missions\":[{\"id\":\"mission_1\",\"repository_id\":\"repo_1\",\"text\":\"run the broken step\",\"status\":\"failed\",\"created_at\":\"<time>\",\"updated_at\":\"<time>\",\"kind\":\"tool\",\"tool_command\":\"echo nope \\u003e\\u00262 \\u0026\\u0026 exit 3\"}],\"agent_runs\":[{\"id\":\"run_1\",\"mission_id\":\"mission_1\",\"worker_name\":\"local-command\",\"status\":\"failed\",\"started_at\":\"<time>\",\"completed_at\":\"<time>\",\"duration_ms\":0,\"worktree_path\":\"<repo>/.orbital/worktrees/run_1\"}],\"workflow_events\":[{\"id\":\"event_1\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"run_started\",\"message\":\"Local command worker started.\",\"created_at\":\"<time>\"},{\"id\":\"event_2\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"command_executed\",\"message\":\"Local command started.\",\"command\":\"echo nope \\u003e\\u00262 \\u0026\\u0026 exit 3\",\"created_at\":\"<time>\"},{\"id\":\"event_3\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"command_executed\",\"message\":\"Local command output: nope\",\"command\":\"echo nope \\u003e\\u00262 \\u0026\\u0026 exit 3\",\"created_at\":\"<time>\"},{\"id\":\"event_4\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"run_failed\",\"message\":\"Local command failed: nope\",\"command\":\"echo nope \\u003e\\u00262 \\u0026\\u0026 exit 3\",\"created_at\":\"<time>\"}],\"patch_proposals\":[],\"chat_messages\":[]}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "run the broken step",
+            "status": "failed",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "echo nope >&2 && exit 3"
+          }
+        ],
+        "agent_runs": [
+          {
+            "id": "run_1",
+            "mission_id": "mission_1",
+            "worker_name": "local-command",
+            "status": "failed",
+            "started_at": "<time>",
+            "completed_at": "<time>",
+            "duration_ms": 0,
+            "worktree_path": "<repo>/.orbital/worktrees/run_1"
+          }
+        ],
+        "workflow_events": [
+          {
+            "id": "event_1",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_started",
+            "message": "Local command worker started.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_2",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "command_executed",
+            "message": "Local command started.",
+            "command": "echo nope >&2 && exit 3",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_3",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "command_executed",
+            "message": "Local command output: nope",
+            "command": "echo nope >&2 && exit 3",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_4",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_failed",
+            "message": "Local command failed: nope",
+            "command": "echo nope >&2 && exit 3",
+            "created_at": "<time>"
+          }
+        ],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    }
+  ]
+}

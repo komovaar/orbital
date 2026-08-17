@@ -29,6 +29,15 @@ jobs:
         run: go test ./...
         working-directory: worker
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # The goldens are the specification the rewrite is measured against; a
+      # change to the worker that moves them has to move them deliberately.
+      - name: Replay recorded scenarios
+        run: node scripts/record-scenarios.mjs --check
+
   typescript:
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,1006 @@
+{
+  "scenario": "chained-missions",
+  "steps": [
+    {
+      "command": [
+        "open",
+        "<repo>"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "queue",
+        "<repo>",
+        "first step",
+        "--tool",
+        "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"first step\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"kind\": \"tool\",\n      \"tool_command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"\n    }\n  ],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "first step",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          }
+        ],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "queue",
+        "<repo>",
+        "second step",
+        "--tool",
+        "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"first step\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"kind\": \"tool\",\n      \"tool_command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"\n    },\n    {\n      \"id\": \"mission_2\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"second step\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"kind\": \"tool\",\n      \"tool_command\": \"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"\n    }\n  ],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "first step",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "second step",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          }
+        ],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "link",
+        "<repo>",
+        "$mission[0]",
+        "$mission[1]"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"first step\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"kind\": \"tool\",\n      \"tool_command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"\n    },\n    {\n      \"id\": \"mission_2\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"second step\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"depends_on\": [\n        \"mission_1\"\n      ],\n      \"kind\": \"tool\",\n      \"tool_command\": \"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"\n    }\n  ],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "first step",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "second step",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "depends_on": [
+              "mission_1"
+            ],
+            "kind": "tool",
+            "tool_command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          }
+        ],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "start-run",
+        "<repo>",
+        "$mission[0]"
+      ],
+      "exitCode": 0,
+      "stdout": "RUN:{\"id\":\"run_1\",\"mission_id\":\"mission_1\",\"worker_name\":\"local-command\",\"status\":\"running\",\"started_at\":\"<time>\"}\nEVENT:{\"id\":\"event_1\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"run_started\",\"message\":\"Local command worker started.\",\"created_at\":\"<time>\"}\nEVENT:{\"id\":\"event_2\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"command_executed\",\"message\":\"Local command started.\",\"command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"}\nPATCH:{\"id\":\"patch_1\",\"run_id\":\"run_1\",\"status\":\"pending\",\"diff\":\"diff --git a/README.md b/README.md\\nindex <sha>..<sha> 100644\\n--- a/README.md\\n+++ b/README.md\\n@@ -1 +1 @@\\n-hello\\n+step one\\n\",\"created_at\":\"<time>\",\"updated_at\":\"<time>\"}\nEVENT:{\"id\":\"event_3\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"patch_proposed\",\"message\":\"Local command produced a patch artifact.\",\"file_path\":\"<repo>/.orbital/worktrees/run_1/.orbital/runs/run_1/patch.diff\",\"command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"}\nEVENT:{\"id\":\"event_4\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"run_completed\",\"message\":\"Local command completed.\",\"command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"}\nRUN:{\"id\":\"run_1\",\"mission_id\":\"mission_1\",\"worker_name\":\"local-command\",\"status\":\"completed\",\"started_at\":\"<time>\",\"completed_at\":\"<time>\",\"duration_ms\":0,\"worktree_path\":\"<repo>/.orbital/worktrees/run_1\"}\nSTATE:{\"repositories\":[{\"id\":\"repo_1\",\"path\":\"<repo>\",\"name\":\"repo\",\"branch\":\"main\",\"created_at\":\"<time>\"}],\"missions\":[{\"id\":\"mission_1\",\"repository_id\":\"repo_1\",\"text\":\"first step\",\"status\":\"waiting_approval\",\"created_at\":\"<time>\",\"updated_at\":\"<time>\",\"kind\":\"tool\",\"tool_command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"},{\"id\":\"mission_2\",\"repository_id\":\"repo_1\",\"text\":\"second step\",\"status\":\"draft\",\"created_at\":\"<time>\",\"updated_at\":\"<time>\",\"depends_on\":[\"mission_1\"],\"kind\":\"tool\",\"tool_command\":\"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"}],\"agent_runs\":[{\"id\":\"run_1\",\"mission_id\":\"mission_1\",\"worker_name\":\"local-command\",\"status\":\"completed\",\"started_at\":\"<time>\",\"completed_at\":\"<time>\",\"duration_ms\":0,\"worktree_path\":\"<repo>/.orbital/worktrees/run_1\"}],\"workflow_events\":[{\"id\":\"event_1\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"run_started\",\"message\":\"Local command worker started.\",\"created_at\":\"<time>\"},{\"id\":\"event_2\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"command_executed\",\"message\":\"Local command started.\",\"command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"},{\"id\":\"event_3\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"patch_proposed\",\"message\":\"Local command produced a patch artifact.\",\"file_path\":\"<repo>/.orbital/worktrees/run_1/.orbital/runs/run_1/patch.diff\",\"command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"},{\"id\":\"event_4\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"run_completed\",\"message\":\"Local command completed.\",\"command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"}],\"patch_proposals\":[{\"id\":\"patch_1\",\"run_id\":\"run_1\",\"status\":\"pending\",\"diff\":\"diff --git a/README.md b/README.md\\nindex <sha>..<sha> 100644\\n--- a/README.md\\n+++ b/README.md\\n@@ -1 +1 @@\\n-hello\\n+step one\\n\",\"created_at\":\"<time>\",\"updated_at\":\"<time>\"}],\"chat_messages\":[]}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "first step",
+            "status": "waiting_approval",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "second step",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "depends_on": [
+              "mission_1"
+            ],
+            "kind": "tool",
+            "tool_command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          }
+        ],
+        "agent_runs": [
+          {
+            "id": "run_1",
+            "mission_id": "mission_1",
+            "worker_name": "local-command",
+            "status": "completed",
+            "started_at": "<time>",
+            "completed_at": "<time>",
+            "duration_ms": 0,
+            "worktree_path": "<repo>/.orbital/worktrees/run_1"
+          }
+        ],
+        "workflow_events": [
+          {
+            "id": "event_1",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_started",
+            "message": "Local command worker started.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_2",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "command_executed",
+            "message": "Local command started.",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_3",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_proposed",
+            "message": "Local command produced a patch artifact.",
+            "file_path": "<repo>/.orbital/worktrees/run_1/.orbital/runs/run_1/patch.diff",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_4",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_completed",
+            "message": "Local command completed.",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          }
+        ],
+        "patch_proposals": [
+          {
+            "id": "patch_1",
+            "run_id": "run_1",
+            "status": "pending",
+            "diff": "diff --git a/README.md b/README.md\nindex <sha>..<sha> 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-hello\n+step one\n",
+            "created_at": "<time>",
+            "updated_at": "<time>"
+          }
+        ],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "approve",
+        "<repo>",
+        "$mission[0]",
+        "docs: first step"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"first step\",\n      \"status\": \"applied\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"kind\": \"tool\",\n      \"tool_command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"\n    },\n    {\n      \"id\": \"mission_2\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"second step\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"depends_on\": [\n        \"mission_1\"\n      ],\n      \"kind\": \"tool\",\n      \"tool_command\": \"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"\n    }\n  ],\n  \"agent_runs\": [\n    {\n      \"id\": \"run_1\",\n      \"mission_id\": \"mission_1\",\n      \"worker_name\": \"local-command\",\n      \"status\": \"completed\",\n      \"started_at\": \"<time>\",\n      \"completed_at\": \"<time>\",\n      \"duration_ms\":0,\n      \"worktree_path\": \"<repo>/.orbital/worktrees/run_1\"\n    }\n  ],\n  \"workflow_events\": [\n    {\n      \"id\": \"event_1\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"run_started\",\n      \"message\": \"Local command worker started.\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_2\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"command_executed\",\n      \"message\": \"Local command started.\",\n      \"command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_3\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"patch_proposed\",\n      \"message\": \"Local command produced a patch artifact.\",\n      \"file_path\": \"<repo>/.orbital/worktrees/run_1/.orbital/runs/run_1/patch.diff\",\n      \"command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_4\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"run_completed\",\n      \"message\": \"Local command completed.\",\n      \"command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_5\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"patch_approved\",\n      \"message\": \"Patch approved.\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_6\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"patch_applied\",\n      \"message\": \"Patch applied.\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"patch_proposals\": [\n    {\n      \"id\": \"patch_1\",\n      \"run_id\": \"run_1\",\n      \"status\": \"applied\",\n      \"diff\": \"diff --git a/README.md b/README.md\\nindex <sha>..<sha> 100644\\n--- a/README.md\\n+++ b/README.md\\n@@ -1 +1 @@\\n-hello\\n+step one\\n\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"commit_hash\": \"<sha>\",\n      \"commit_subject\": \"docs: first step\",\n      \"branch\": \"main\"\n    }\n  ],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "first step",
+            "status": "applied",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "second step",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "depends_on": [
+              "mission_1"
+            ],
+            "kind": "tool",
+            "tool_command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          }
+        ],
+        "agent_runs": [
+          {
+            "id": "run_1",
+            "mission_id": "mission_1",
+            "worker_name": "local-command",
+            "status": "completed",
+            "started_at": "<time>",
+            "completed_at": "<time>",
+            "duration_ms": 0,
+            "worktree_path": "<repo>/.orbital/worktrees/run_1"
+          }
+        ],
+        "workflow_events": [
+          {
+            "id": "event_1",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_started",
+            "message": "Local command worker started.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_2",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "command_executed",
+            "message": "Local command started.",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_3",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_proposed",
+            "message": "Local command produced a patch artifact.",
+            "file_path": "<repo>/.orbital/worktrees/run_1/.orbital/runs/run_1/patch.diff",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_4",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_completed",
+            "message": "Local command completed.",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_5",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_approved",
+            "message": "Patch approved.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_6",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_applied",
+            "message": "Patch applied.",
+            "created_at": "<time>"
+          }
+        ],
+        "patch_proposals": [
+          {
+            "id": "patch_1",
+            "run_id": "run_1",
+            "status": "applied",
+            "diff": "diff --git a/README.md b/README.md\nindex <sha>..<sha> 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-hello\n+step one\n",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "commit_hash": "<sha>",
+            "commit_subject": "docs: first step",
+            "branch": "main"
+          }
+        ],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "start-run",
+        "<repo>",
+        "$mission[1]"
+      ],
+      "exitCode": 0,
+      "stdout": "RUN:{\"id\":\"run_2\",\"mission_id\":\"mission_2\",\"worker_name\":\"local-command\",\"status\":\"running\",\"started_at\":\"<time>\"}\nEVENT:{\"id\":\"event_7\",\"mission_id\":\"mission_2\",\"run_id\":\"run_2\",\"type\":\"command_executed\",\"message\":\"Received hand-off from “first step” — summary and changes attached.\",\"created_at\":\"<time>\"}\nEVENT:{\"id\":\"event_8\",\"mission_id\":\"mission_2\",\"run_id\":\"run_2\",\"type\":\"run_started\",\"message\":\"Local command worker started.\",\"created_at\":\"<time>\"}\nEVENT:{\"id\":\"event_9\",\"mission_id\":\"mission_2\",\"run_id\":\"run_2\",\"type\":\"command_executed\",\"message\":\"Local command started.\",\"command\":\"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"}\nPATCH:{\"id\":\"patch_2\",\"run_id\":\"run_2\",\"status\":\"pending\",\"diff\":\"diff --git a/README.md b/README.md\\nindex <sha>..<sha> 100644\\n--- a/README.md\\n+++ b/README.md\\n@@ -1 +1 @@\\n-step one\\n+step two\\n\",\"created_at\":\"<time>\",\"updated_at\":\"<time>\"}\nEVENT:{\"id\":\"event_10\",\"mission_id\":\"mission_2\",\"run_id\":\"run_2\",\"type\":\"patch_proposed\",\"message\":\"Local command produced a patch artifact.\",\"file_path\":\"<repo>/.orbital/worktrees/run_2/.orbital/runs/run_2/patch.diff\",\"command\":\"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"}\nEVENT:{\"id\":\"event_11\",\"mission_id\":\"mission_2\",\"run_id\":\"run_2\",\"type\":\"run_completed\",\"message\":\"Local command completed.\",\"command\":\"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"}\nRUN:{\"id\":\"run_2\",\"mission_id\":\"mission_2\",\"worker_name\":\"local-command\",\"status\":\"completed\",\"started_at\":\"<time>\",\"completed_at\":\"<time>\",\"duration_ms\":0,\"worktree_path\":\"<repo>/.orbital/worktrees/run_2\"}\nSTATE:{\"repositories\":[{\"id\":\"repo_1\",\"path\":\"<repo>\",\"name\":\"repo\",\"branch\":\"main\",\"created_at\":\"<time>\"}],\"missions\":[{\"id\":\"mission_1\",\"repository_id\":\"repo_1\",\"text\":\"first step\",\"status\":\"applied\",\"created_at\":\"<time>\",\"updated_at\":\"<time>\",\"kind\":\"tool\",\"tool_command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"},{\"id\":\"mission_2\",\"repository_id\":\"repo_1\",\"text\":\"second step\",\"status\":\"waiting_approval\",\"created_at\":\"<time>\",\"updated_at\":\"<time>\",\"depends_on\":[\"mission_1\"],\"kind\":\"tool\",\"tool_command\":\"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"}],\"agent_runs\":[{\"id\":\"run_1\",\"mission_id\":\"mission_1\",\"worker_name\":\"local-command\",\"status\":\"completed\",\"started_at\":\"<time>\",\"completed_at\":\"<time>\",\"duration_ms\":0,\"worktree_path\":\"<repo>/.orbital/worktrees/run_1\"},{\"id\":\"run_2\",\"mission_id\":\"mission_2\",\"worker_name\":\"local-command\",\"status\":\"completed\",\"started_at\":\"<time>\",\"completed_at\":\"<time>\",\"duration_ms\":0,\"worktree_path\":\"<repo>/.orbital/worktrees/run_2\"}],\"workflow_events\":[{\"id\":\"event_1\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"run_started\",\"message\":\"Local command worker started.\",\"created_at\":\"<time>\"},{\"id\":\"event_2\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"command_executed\",\"message\":\"Local command started.\",\"command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"},{\"id\":\"event_3\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"patch_proposed\",\"message\":\"Local command produced a patch artifact.\",\"file_path\":\"<repo>/.orbital/worktrees/run_1/.orbital/runs/run_1/patch.diff\",\"command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"},{\"id\":\"event_4\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"run_completed\",\"message\":\"Local command completed.\",\"command\":\"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"},{\"id\":\"event_5\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"patch_approved\",\"message\":\"Patch approved.\",\"created_at\":\"<time>\"},{\"id\":\"event_6\",\"mission_id\":\"mission_1\",\"run_id\":\"run_1\",\"type\":\"patch_applied\",\"message\":\"Patch applied.\",\"created_at\":\"<time>\"},{\"id\":\"event_7\",\"mission_id\":\"mission_2\",\"run_id\":\"run_2\",\"type\":\"command_executed\",\"message\":\"Received hand-off from “first step” — summary and changes attached.\",\"created_at\":\"<time>\"},{\"id\":\"event_8\",\"mission_id\":\"mission_2\",\"run_id\":\"run_2\",\"type\":\"run_started\",\"message\":\"Local command worker started.\",\"created_at\":\"<time>\"},{\"id\":\"event_9\",\"mission_id\":\"mission_2\",\"run_id\":\"run_2\",\"type\":\"command_executed\",\"message\":\"Local command started.\",\"command\":\"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"},{\"id\":\"event_10\",\"mission_id\":\"mission_2\",\"run_id\":\"run_2\",\"type\":\"patch_proposed\",\"message\":\"Local command produced a patch artifact.\",\"file_path\":\"<repo>/.orbital/worktrees/run_2/.orbital/runs/run_2/patch.diff\",\"command\":\"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"},{\"id\":\"event_11\",\"mission_id\":\"mission_2\",\"run_id\":\"run_2\",\"type\":\"run_completed\",\"message\":\"Local command completed.\",\"command\":\"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\"created_at\":\"<time>\"}],\"patch_proposals\":[{\"id\":\"patch_1\",\"run_id\":\"run_1\",\"status\":\"applied\",\"diff\":\"diff --git a/README.md b/README.md\\nindex <sha>..<sha> 100644\\n--- a/README.md\\n+++ b/README.md\\n@@ -1 +1 @@\\n-hello\\n+step one\\n\",\"created_at\":\"<time>\",\"updated_at\":\"<time>\",\"commit_hash\":\"<sha>\",\"commit_subject\":\"docs: first step\",\"branch\":\"main\"},{\"id\":\"patch_2\",\"run_id\":\"run_2\",\"status\":\"pending\",\"diff\":\"diff --git a/README.md b/README.md\\nindex <sha>..<sha> 100644\\n--- a/README.md\\n+++ b/README.md\\n@@ -1 +1 @@\\n-step one\\n+step two\\n\",\"created_at\":\"<time>\",\"updated_at\":\"<time>\"}],\"chat_messages\":[]}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "first step",
+            "status": "applied",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "second step",
+            "status": "waiting_approval",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "depends_on": [
+              "mission_1"
+            ],
+            "kind": "tool",
+            "tool_command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          }
+        ],
+        "agent_runs": [
+          {
+            "id": "run_1",
+            "mission_id": "mission_1",
+            "worker_name": "local-command",
+            "status": "completed",
+            "started_at": "<time>",
+            "completed_at": "<time>",
+            "duration_ms": 0,
+            "worktree_path": "<repo>/.orbital/worktrees/run_1"
+          },
+          {
+            "id": "run_2",
+            "mission_id": "mission_2",
+            "worker_name": "local-command",
+            "status": "completed",
+            "started_at": "<time>",
+            "completed_at": "<time>",
+            "duration_ms": 0,
+            "worktree_path": "<repo>/.orbital/worktrees/run_2"
+          }
+        ],
+        "workflow_events": [
+          {
+            "id": "event_1",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_started",
+            "message": "Local command worker started.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_2",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "command_executed",
+            "message": "Local command started.",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_3",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_proposed",
+            "message": "Local command produced a patch artifact.",
+            "file_path": "<repo>/.orbital/worktrees/run_1/.orbital/runs/run_1/patch.diff",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_4",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_completed",
+            "message": "Local command completed.",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_5",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_approved",
+            "message": "Patch approved.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_6",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_applied",
+            "message": "Patch applied.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_7",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "command_executed",
+            "message": "Received hand-off from “first step” — summary and changes attached.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_8",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "run_started",
+            "message": "Local command worker started.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_9",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "command_executed",
+            "message": "Local command started.",
+            "command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_10",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "patch_proposed",
+            "message": "Local command produced a patch artifact.",
+            "file_path": "<repo>/.orbital/worktrees/run_2/.orbital/runs/run_2/patch.diff",
+            "command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_11",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "run_completed",
+            "message": "Local command completed.",
+            "command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          }
+        ],
+        "patch_proposals": [
+          {
+            "id": "patch_1",
+            "run_id": "run_1",
+            "status": "applied",
+            "diff": "diff --git a/README.md b/README.md\nindex <sha>..<sha> 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-hello\n+step one\n",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "commit_hash": "<sha>",
+            "commit_subject": "docs: first step",
+            "branch": "main"
+          },
+          {
+            "id": "patch_2",
+            "run_id": "run_2",
+            "status": "pending",
+            "diff": "diff --git a/README.md b/README.md\nindex <sha>..<sha> 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-step one\n+step two\n",
+            "created_at": "<time>",
+            "updated_at": "<time>"
+          }
+        ],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "approve",
+        "<repo>",
+        "$mission[1]",
+        "docs: second step"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"first step\",\n      \"status\": \"applied\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"kind\": \"tool\",\n      \"tool_command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"\n    },\n    {\n      \"id\": \"mission_2\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"second step\",\n      \"status\": \"applied\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"depends_on\": [\n        \"mission_1\"\n      ],\n      \"kind\": \"tool\",\n      \"tool_command\": \"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\"\n    }\n  ],\n  \"agent_runs\": [\n    {\n      \"id\": \"run_1\",\n      \"mission_id\": \"mission_1\",\n      \"worker_name\": \"local-command\",\n      \"status\": \"completed\",\n      \"started_at\": \"<time>\",\n      \"completed_at\": \"<time>\",\n      \"duration_ms\":0,\n      \"worktree_path\": \"<repo>/.orbital/worktrees/run_1\"\n    },\n    {\n      \"id\": \"run_2\",\n      \"mission_id\": \"mission_2\",\n      \"worker_name\": \"local-command\",\n      \"status\": \"completed\",\n      \"started_at\": \"<time>\",\n      \"completed_at\": \"<time>\",\n      \"duration_ms\":0,\n      \"worktree_path\": \"<repo>/.orbital/worktrees/run_2\"\n    }\n  ],\n  \"workflow_events\": [\n    {\n      \"id\": \"event_1\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"run_started\",\n      \"message\": \"Local command worker started.\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_2\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"command_executed\",\n      \"message\": \"Local command started.\",\n      \"command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_3\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"patch_proposed\",\n      \"message\": \"Local command produced a patch artifact.\",\n      \"file_path\": \"<repo>/.orbital/worktrees/run_1/.orbital/runs/run_1/patch.diff\",\n      \"command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_4\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"run_completed\",\n      \"message\": \"Local command completed.\",\n      \"command\": \"printf 'step one\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_5\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"patch_approved\",\n      \"message\": \"Patch approved.\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_6\",\n      \"mission_id\": \"mission_1\",\n      \"run_id\": \"run_1\",\n      \"type\": \"patch_applied\",\n      \"message\": \"Patch applied.\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_7\",\n      \"mission_id\": \"mission_2\",\n      \"run_id\": \"run_2\",\n      \"type\": \"command_executed\",\n      \"message\": \"Received hand-off from “first step” — summary and changes attached.\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_8\",\n      \"mission_id\": \"mission_2\",\n      \"run_id\": \"run_2\",\n      \"type\": \"run_started\",\n      \"message\": \"Local command worker started.\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_9\",\n      \"mission_id\": \"mission_2\",\n      \"run_id\": \"run_2\",\n      \"type\": \"command_executed\",\n      \"message\": \"Local command started.\",\n      \"command\": \"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_10\",\n      \"mission_id\": \"mission_2\",\n      \"run_id\": \"run_2\",\n      \"type\": \"patch_proposed\",\n      \"message\": \"Local command produced a patch artifact.\",\n      \"file_path\": \"<repo>/.orbital/worktrees/run_2/.orbital/runs/run_2/patch.diff\",\n      \"command\": \"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_11\",\n      \"mission_id\": \"mission_2\",\n      \"run_id\": \"run_2\",\n      \"type\": \"run_completed\",\n      \"message\": \"Local command completed.\",\n      \"command\": \"printf 'step two\\\\n' \\u003e README.md \\u0026\\u0026 git diff \\u003e \\\"$ORBITAL_PATCH_PATH\\\" \\u0026\\u0026 git checkout -- README.md\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_12\",\n      \"mission_id\": \"mission_2\",\n      \"run_id\": \"run_2\",\n      \"type\": \"patch_approved\",\n      \"message\": \"Patch approved.\",\n      \"created_at\": \"<time>\"\n    },\n    {\n      \"id\": \"event_13\",\n      \"mission_id\": \"mission_2\",\n      \"run_id\": \"run_2\",\n      \"type\": \"patch_applied\",\n      \"message\": \"Patch applied.\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"patch_proposals\": [\n    {\n      \"id\": \"patch_1\",\n      \"run_id\": \"run_1\",\n      \"status\": \"applied\",\n      \"diff\": \"diff --git a/README.md b/README.md\\nindex <sha>..<sha> 100644\\n--- a/README.md\\n+++ b/README.md\\n@@ -1 +1 @@\\n-hello\\n+step one\\n\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"commit_hash\": \"<sha>\",\n      \"commit_subject\": \"docs: first step\",\n      \"branch\": \"main\"\n    },\n    {\n      \"id\": \"patch_2\",\n      \"run_id\": \"run_2\",\n      \"status\": \"applied\",\n      \"diff\": \"diff --git a/README.md b/README.md\\nindex <sha>..<sha> 100644\\n--- a/README.md\\n+++ b/README.md\\n@@ -1 +1 @@\\n-step one\\n+step two\\n\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"commit_hash\": \"<sha>\",\n      \"commit_subject\": \"docs: second step\",\n      \"branch\": \"main\"\n    }\n  ],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "first step",
+            "status": "applied",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "second step",
+            "status": "applied",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "depends_on": [
+              "mission_1"
+            ],
+            "kind": "tool",
+            "tool_command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          }
+        ],
+        "agent_runs": [
+          {
+            "id": "run_1",
+            "mission_id": "mission_1",
+            "worker_name": "local-command",
+            "status": "completed",
+            "started_at": "<time>",
+            "completed_at": "<time>",
+            "duration_ms": 0,
+            "worktree_path": "<repo>/.orbital/worktrees/run_1"
+          },
+          {
+            "id": "run_2",
+            "mission_id": "mission_2",
+            "worker_name": "local-command",
+            "status": "completed",
+            "started_at": "<time>",
+            "completed_at": "<time>",
+            "duration_ms": 0,
+            "worktree_path": "<repo>/.orbital/worktrees/run_2"
+          }
+        ],
+        "workflow_events": [
+          {
+            "id": "event_1",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_started",
+            "message": "Local command worker started.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_2",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "command_executed",
+            "message": "Local command started.",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_3",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_proposed",
+            "message": "Local command produced a patch artifact.",
+            "file_path": "<repo>/.orbital/worktrees/run_1/.orbital/runs/run_1/patch.diff",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_4",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_completed",
+            "message": "Local command completed.",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_5",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_approved",
+            "message": "Patch approved.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_6",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_applied",
+            "message": "Patch applied.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_7",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "command_executed",
+            "message": "Received hand-off from “first step” — summary and changes attached.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_8",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "run_started",
+            "message": "Local command worker started.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_9",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "command_executed",
+            "message": "Local command started.",
+            "command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_10",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "patch_proposed",
+            "message": "Local command produced a patch artifact.",
+            "file_path": "<repo>/.orbital/worktrees/run_2/.orbital/runs/run_2/patch.diff",
+            "command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_11",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "run_completed",
+            "message": "Local command completed.",
+            "command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_12",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "patch_approved",
+            "message": "Patch approved.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_13",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "patch_applied",
+            "message": "Patch applied.",
+            "created_at": "<time>"
+          }
+        ],
+        "patch_proposals": [
+          {
+            "id": "patch_1",
+            "run_id": "run_1",
+            "status": "applied",
+            "diff": "diff --git a/README.md b/README.md\nindex <sha>..<sha> 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-hello\n+step one\n",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "commit_hash": "<sha>",
+            "commit_subject": "docs: first step",
+            "branch": "main"
+          },
+          {
+            "id": "patch_2",
+            "run_id": "run_2",
+            "status": "applied",
+            "diff": "diff --git a/README.md b/README.md\nindex <sha>..<sha> 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-step one\n+step two\n",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "commit_hash": "<sha>",
+            "commit_subject": "docs: second step",
+            "branch": "main"
+          }
+        ],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "history",
+        "--json",
+        "<repo>"
+      ],
+      "exitCode": 0,
+      "stdout": "[\n  {\n    \"hash\": \"<sha>\",\n    \"short_hash\": \"<sha>\",\n    \"author\": \"Orbital Fixture\",\n    \"date\": \"<time>\",\n    \"subject\": \"docs: second step\"\n  },\n  {\n    \"hash\": \"<sha>\",\n    \"short_hash\": \"<sha>\",\n    \"author\": \"Orbital Fixture\",\n    \"date\": \"<time>\",\n    \"subject\": \"docs: first step\"\n  },\n  {\n    \"hash\": \"<sha>\",\n    \"short_hash\": \"<sha>\",\n    \"author\": \"Orbital Fixture\",\n    \"date\": \"<time>\",\n    \"subject\": \"chore: initial commit\"\n  }\n]\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "first step",
+            "status": "applied",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "second step",
+            "status": "applied",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "depends_on": [
+              "mission_1"
+            ],
+            "kind": "tool",
+            "tool_command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md"
+          }
+        ],
+        "agent_runs": [
+          {
+            "id": "run_1",
+            "mission_id": "mission_1",
+            "worker_name": "local-command",
+            "status": "completed",
+            "started_at": "<time>",
+            "completed_at": "<time>",
+            "duration_ms": 0,
+            "worktree_path": "<repo>/.orbital/worktrees/run_1"
+          },
+          {
+            "id": "run_2",
+            "mission_id": "mission_2",
+            "worker_name": "local-command",
+            "status": "completed",
+            "started_at": "<time>",
+            "completed_at": "<time>",
+            "duration_ms": 0,
+            "worktree_path": "<repo>/.orbital/worktrees/run_2"
+          }
+        ],
+        "workflow_events": [
+          {
+            "id": "event_1",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_started",
+            "message": "Local command worker started.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_2",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "command_executed",
+            "message": "Local command started.",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_3",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_proposed",
+            "message": "Local command produced a patch artifact.",
+            "file_path": "<repo>/.orbital/worktrees/run_1/.orbital/runs/run_1/patch.diff",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_4",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "run_completed",
+            "message": "Local command completed.",
+            "command": "printf 'step one\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_5",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_approved",
+            "message": "Patch approved.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_6",
+            "mission_id": "mission_1",
+            "run_id": "run_1",
+            "type": "patch_applied",
+            "message": "Patch applied.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_7",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "command_executed",
+            "message": "Received hand-off from “first step” — summary and changes attached.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_8",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "run_started",
+            "message": "Local command worker started.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_9",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "command_executed",
+            "message": "Local command started.",
+            "command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_10",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "patch_proposed",
+            "message": "Local command produced a patch artifact.",
+            "file_path": "<repo>/.orbital/worktrees/run_2/.orbital/runs/run_2/patch.diff",
+            "command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_11",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "run_completed",
+            "message": "Local command completed.",
+            "command": "printf 'step two\\n' > README.md && git diff > \"$ORBITAL_PATCH_PATH\" && git checkout -- README.md",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_12",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "patch_approved",
+            "message": "Patch approved.",
+            "created_at": "<time>"
+          },
+          {
+            "id": "event_13",
+            "mission_id": "mission_2",
+            "run_id": "run_2",
+            "type": "patch_applied",
+            "message": "Patch applied.",
+            "created_at": "<time>"
+          }
+        ],
+        "patch_proposals": [
+          {
+            "id": "patch_1",
+            "run_id": "run_1",
+            "status": "applied",
+            "diff": "diff --git a/README.md b/README.md\nindex <sha>..<sha> 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-hello\n+step one\n",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "commit_hash": "<sha>",
+            "commit_subject": "docs: first step",
+            "branch": "main"
+          },
+          {
+            "id": "patch_2",
+            "run_id": "run_2",
+            "status": "applied",
+            "diff": "diff --git a/README.md b/README.md\nindex <sha>..<sha> 100644\n--- a/README.md\n+++ b/README.md\n@@ -1 +1 @@\n-step one\n+step two\n",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "commit_hash": "<sha>",
+            "commit_subject": "docs: second step",
+            "branch": "main"
+          }
+        ],
+        "chat_messages": []
+      }
+    }
+  ]
+}

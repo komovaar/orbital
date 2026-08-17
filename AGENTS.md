@@ -30,7 +30,8 @@ A pnpm workspace. Every TypeScript package installs from the root.
 - Worker: `cd worker && go test ./...`
 - Rust shell: `cd apps/web/src-tauri && cargo fmt --check && cargo clippy --all-targets -- -D warnings`
 - Dev app: `cd apps/web && pnpm run tauri:dev`
-- Re-record the CLI scenarios: `scripts/record-scenarios.sh`
+- Replay the recorded CLI scenarios: `node scripts/record-scenarios.mjs --check`
+- Re-record them (deliberately): `node scripts/record-scenarios.mjs`
 
 ## Conventions
 

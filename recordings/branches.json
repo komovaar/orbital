@@ -1,0 +1,183 @@
+{
+  "scenario": "branches",
+  "steps": [
+    {
+      "command": [
+        "open",
+        "<repo>"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "branches",
+        "<repo>"
+      ],
+      "exitCode": 0,
+      "stdout": "[\n  \"main\"\n]\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "switch-branch",
+        "<repo>",
+        "feature/x",
+        "--create"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"branch\": \"feature/x\",\n  \"head\": \"<sha>\",\n  \"remote\": \"origin\",\n  \"upstream\": \"\",\n  \"ahead\": 1,\n  \"behind\": 0\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "feature/x",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "branches",
+        "<repo>"
+      ],
+      "exitCode": 0,
+      "stdout": "[\n  \"feature/x\",\n  \"main\"\n]\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "feature/x",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "git-sync",
+        "<repo>"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"branch\": \"feature/x\",\n  \"head\": \"<sha>\",\n  \"remote\": \"origin\",\n  \"upstream\": \"\",\n  \"ahead\": 1,\n  \"behind\": 0\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "feature/x",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "switch-branch",
+        "<repo>",
+        "main"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"branch\": \"main\",\n  \"head\": \"<sha>\",\n  \"remote\": \"origin\",\n  \"upstream\": \"origin/main\",\n  \"ahead\": 0,\n  \"behind\": 0\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "branches",
+        "<repo>"
+      ],
+      "exitCode": 0,
+      "stdout": "[\n  \"feature/x\",\n  \"main\"\n]\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    }
+  ]
+}

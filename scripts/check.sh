@@ -7,6 +7,9 @@ echo "== worker (Go)"
 (cd worker && go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2 run ./...)
 (cd worker && go test ./...)
 
+echo "== recorded scenarios"
+node scripts/record-scenarios.mjs --check
+
 echo "== workspace (TypeScript)"
 pnpm -r lint
 pnpm -r typecheck

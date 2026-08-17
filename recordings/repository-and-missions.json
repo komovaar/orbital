@@ -1,0 +1,288 @@
+{
+  "scenario": "repository-and-missions",
+  "steps": [
+    {
+      "command": [
+        "open",
+        "<repo>"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "queue",
+        "<repo>",
+        "tidy the readme"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"tidy the readme\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\"\n    }\n  ],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "tidy the readme",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>"
+          }
+        ],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "queue",
+        "<repo>",
+        "run the formatter",
+        "--tool",
+        "echo formatted"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"tidy the readme\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\"\n    },\n    {\n      \"id\": \"mission_2\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"run the formatter\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"kind\": \"tool\",\n      \"tool_command\": \"echo formatted\"\n    }\n  ],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "tidy the readme",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "run the formatter",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "echo formatted"
+          }
+        ],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "edit-mission",
+        "<repo>",
+        "$mission[0]",
+        "tidy the readme, briefly"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"tidy the readme, briefly\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\"\n    },\n    {\n      \"id\": \"mission_2\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"run the formatter\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"kind\": \"tool\",\n      \"tool_command\": \"echo formatted\"\n    }\n  ],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "tidy the readme, briefly",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "run the formatter",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "echo formatted"
+          }
+        ],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "link",
+        "<repo>",
+        "$mission[0]",
+        "$mission[1]"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"tidy the readme, briefly\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\"\n    },\n    {\n      \"id\": \"mission_2\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"run the formatter\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"depends_on\": [\n        \"mission_1\"\n      ],\n      \"kind\": \"tool\",\n      \"tool_command\": \"echo formatted\"\n    }\n  ],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "tidy the readme, briefly",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "run the formatter",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "depends_on": [
+              "mission_1"
+            ],
+            "kind": "tool",
+            "tool_command": "echo formatted"
+          }
+        ],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "unlink",
+        "<repo>",
+        "$mission[0]",
+        "$mission[1]"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"tidy the readme, briefly\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\"\n    },\n    {\n      \"id\": \"mission_2\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"run the formatter\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\",\n      \"kind\": \"tool\",\n      \"tool_command\": \"echo formatted\"\n    }\n  ],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "tidy the readme, briefly",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>"
+          },
+          {
+            "id": "mission_2",
+            "repository_id": "repo_1",
+            "text": "run the formatter",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>",
+            "kind": "tool",
+            "tool_command": "echo formatted"
+          }
+        ],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    },
+    {
+      "command": [
+        "delete",
+        "<repo>",
+        "$mission[1]"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n  \"repositories\": [\n    {\n      \"id\": \"repo_1\",\n      \"path\": \"<repo>\",\n      \"name\": \"repo\",\n      \"branch\": \"main\",\n      \"created_at\": \"<time>\"\n    }\n  ],\n  \"missions\": [\n    {\n      \"id\": \"mission_1\",\n      \"repository_id\": \"repo_1\",\n      \"text\": \"tidy the readme, briefly\",\n      \"status\": \"draft\",\n      \"created_at\": \"<time>\",\n      \"updated_at\": \"<time>\"\n    }\n  ],\n  \"agent_runs\": [],\n  \"workflow_events\": [],\n  \"patch_proposals\": [],\n  \"chat_messages\": []\n}\n",
+      "stderr": "",
+      "status": {
+        "repositories": [
+          {
+            "id": "repo_1",
+            "path": "<repo>",
+            "name": "repo",
+            "branch": "main",
+            "created_at": "<time>"
+          }
+        ],
+        "missions": [
+          {
+            "id": "mission_1",
+            "repository_id": "repo_1",
+            "text": "tidy the readme, briefly",
+            "status": "draft",
+            "created_at": "<time>",
+            "updated_at": "<time>"
+          }
+        ],
+        "agent_runs": [],
+        "workflow_events": [],
+        "patch_proposals": [],
+        "chat_messages": []
+      }
+    }
+  ]
+}
