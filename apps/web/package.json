@@ -18,8 +18,10 @@
   },
   "dependencies": {
     "@dagrejs/dagre": "^3.0.0",
+    "@orbital/contracts": "workspace:*",
     "@tauri-apps/api": "^2.11.0",
     "@tauri-apps/plugin-dialog": "^2.7.1",
+    "@trpc/client": "^11.18.0",
     "@xyflow/react": "^12.11.0",
     "highlight.js": "^11.11.1",
     "lucide-react": "^0.468.0",
@@ -31,6 +33,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@tauri-apps/cli": "^2.11.2",
+    "@types/node": "^24.13.3",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.0",

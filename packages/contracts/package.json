@@ -1,0 +1,23 @@
+{
+  "name": "@orbital/contracts",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "test": "echo 'types only, checked by typecheck'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@orbital/server": "workspace:*"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.6.0",
+    "typescript": "^5.8.0",
+    "typescript-eslint": "^8.62.1"
+  }
+}

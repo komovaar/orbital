@@ -6,4 +6,5 @@ packages:
 # esbuild ships a platform binary that its install script unpacks; vite and
 # vitest are unusable without it. Everything else stays unbuilt by default.
 onlyBuiltDependencies:
+  - better-sqlite3
   - esbuild

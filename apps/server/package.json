@@ -3,20 +3,31 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
   "scripts": {
-    "dev": "node --experimental-strip-types index.ts",
+    "dev": "tsx watch index.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "start": "tsx index.ts"
   },
   "dependencies": {
-    "@orbital/domain": "workspace:*"
+    "@orbital/domain": "workspace:*",
+    "@trpc/server": "^11.18.0",
+    "better-sqlite3": "^13.0.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@trpc/client": "^11.18.0",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^24.3.0",
     "eslint": "^10.6.0",
+    "eventsource": "^5.1.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.0",
     "typescript-eslint": "^8.62.1",
     "vitest": "^4.1.10"
