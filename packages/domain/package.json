@@ -1,5 +1,9 @@
 {
-  "name": "@orbital/core",
+  "name": "@orbital/domain",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts"
+  },
   "private": true,
   "version": "0.0.0",
   "type": "module",

@@ -4,7 +4,6 @@
     "lib": ["ES2022"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "types": ["node"],
     "allowJs": false,
     "strict": true,
     "noUncheckedIndexedAccess": true,
@@ -19,6 +18,5 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true
-  },
-  "include": ["src", "vitest.config.ts", "eslint.config.js"]
+  }
 }
